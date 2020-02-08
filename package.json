@@ -1,0 +1,33 @@
+{
+  "name": "node-ts-starter",
+  "version": "0.1.0",
+  "description": "Starter template for TypeScript node projects.",
+  "main": "dist/index.js",
+  "private": true,
+  "devDependencies": {
+    "@types/jest": "^25.1.2",
+    "@typescript-eslint/eslint-plugin": "^2.19.0",
+    "@typescript-eslint/parser": "^2.19.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^23.7.0",
+    "jest": "^25.1.0",
+    "nodemon": "^2.0.2",
+    "ts-jest": "^25.2.0",
+    "typescript": "^3.7.5"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "concurrently -p \"[{name}]\" -n \"TSC,Node\" \"npm run build:watch:tsc\" \"npm run build:watch:node\"",
+    "build:watch:tsc": "tsc -w",
+    "build:watch:node": "nodemon --watch dist dist/index.js",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "start": "node dist/index.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
