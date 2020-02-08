@@ -4,50 +4,61 @@ A discord bot of sorts.
 ## Requirements
 
 * Node.js 10+
-* Yarn (https://yarnpkg.com)
 
 ## Setup
 
 Install dependencies.
 
 ```
-yarn install
+npm install
 ```
+
+Run migrations.
+
+```
+npm run knex migrate:latest
+```
+
+Create a [discord bot account](https://discordapp.com/developers/applications), create a bot user for the application, get it's token, set it in _.env.sample_ file and save it as _.env_.
+
+Invite the bot into a server of your choosing:
+
+[https://discordapp.com/api/oauth2/authorize?client_id=CLIENTIDHERE&scope=bot&permissions=519232](https://discordapp.com/api/oauth2/authorize?client_id=CLIENTIDHERE&scope=bot&permissions=519232)
 
 ## Running
 
 Run tests
 
 ```
-yarn test
+npm run test
 ```
 
 Build sources
 
 ```
-yarn build
+npm run build
 ```
 
 Run the built files.
 
 ```
-yarn start
+npm run start
 ```
 
 Build sources and watch for changes
 
 ```
-yarn build:watch
+npm run build:watch
 ```
 
 Run the linter
 
 ```
-yarn lint
+npm run lint
 ```
 
 Run the linter and auto-fix issues
 
 ```
-yarn lint:fix
+npm run lint:fix
 ```
