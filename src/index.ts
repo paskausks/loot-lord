@@ -1,8 +1,11 @@
 import knex from 'knex';
 import dotenv from 'dotenv';
 import { env, exit } from 'process';
+import { fromEvent, Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import Discord from 'discord.js';
 import logger from 'signale';
+import commands from './commands';
 
 const main = async (): Promise<void> => {
     dotenv.config();
@@ -30,21 +33,37 @@ const main = async (): Promise<void> => {
         logger.success(`Logged in as ${client.user.tag}!`);
     });
 
-    client.on('message', (msg: Discord.Message): void => {
-        if (!msg.content.startsWith(prefix) || msg.author.bot) {
+    const newMessage = (fromEvent(client, 'message') as Observable<Discord.Message>).pipe(
+        filter((msg) => msg.content.startsWith(prefix) && !msg.author.bot),
+        filter((msg) => msg.content.length > prefix.length),
+    );
+
+    newMessage.subscribe((msg) => {
+        const tokens: string[] = msg.content.slice(prefix.length).split(' ');
+        const command: string = tokens[0];
+        const args: string[] = tokens.slice(1);
+
+        logger.info(`Received valid command "${command}" from ${msg.author.tag}`);
+
+        const commandExecutor = commands[command];
+
+        if (!commandExecutor) {
+            msg.channel.send(
+                `Unrecognized command. Try one of these: ${Object.keys(commands).map(
+                    (v) => `\`${prefix}${v}\``,
+                ).join(', ')}.`,
+            );
             return;
         }
 
-        let tokens: string[] = msg.content.slice(prefix.length).split(' ');
-        let command: string = tokens[0];
-        const args = tokens.slice(1);
-
-        msg.channel.send(`Command sent: ${command}\n\nArgs are: ${args.join(',')}`);
-    });
+        commandExecutor.exec({
+            msg,
+            knex: cnx,
+            args,
+        });
+    }, undefined, () => logger.log('complete'));
 
     client.login(token);
 };
 
-main().then(() => {
-    logger.log('done running');
-});
+main();
