@@ -6,6 +6,7 @@ import { filter } from 'rxjs/operators';
 import Discord from 'discord.js';
 import logger from 'signale';
 import commands from './commands';
+import { SimpleCommand } from './models';
 
 const main = async (): Promise<void> => {
     dotenv.config();
@@ -38,29 +39,47 @@ const main = async (): Promise<void> => {
         filter((msg) => msg.content.length > prefix.length),
     );
 
-    newMessage.subscribe((msg) => {
+    newMessage.subscribe(async (msg) => {
         const tokens: string[] = msg.content.slice(prefix.length).split(' ');
         const command: string = tokens[0];
         const args: string[] = tokens.slice(1);
 
-        logger.info(`Received valid command "${command}" from ${msg.author.tag}`);
+        logger.info(`Received command "${command}" from ${msg.author.tag}`);
 
         const commandExecutor = commands[command];
 
-        if (!commandExecutor) {
-            msg.channel.send(
-                `Unrecognized command. Try one of these: ${Object.keys(commands).map(
+        // Built in command found.
+        if (commandExecutor) {
+            await commandExecutor.exec({
+                msg,
+                knex: cnx,
+                args,
+            });
+            return;
+        }
+
+        // Try simple commands
+        const [simpleCommand] = await cnx.select('command', 'response')
+            .from<SimpleCommand>('simplecommands')
+            .where('command', command)
+            .limit(1);
+
+        if (!simpleCommand) {
+            const simpleCommands = await cnx.select('command')
+                .from<SimpleCommand>('simplecommands');
+
+            const commandList = Object.keys(commands)
+                .concat(simpleCommands.map((cmd) => cmd.command));
+
+            await msg.channel.send(
+                `Unrecognized command. Try one of these: ${commandList.map(
                     (v) => `\`${prefix}${v}\``,
                 ).join(', ')}.`,
             );
             return;
         }
 
-        commandExecutor.exec({
-            msg,
-            knex: cnx,
-            args,
-        });
+        await msg.channel.send(simpleCommand.response);
     }, undefined, () => logger.log('complete'));
 
     client.login(token);

@@ -7,3 +7,8 @@ export interface FriendlyFire {
     killer_id: string;
     victim_id: string;
 }
+
+export interface SimpleCommand {
+    command: string;
+    response: string;
+}

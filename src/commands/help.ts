@@ -12,7 +12,7 @@ export default class Help implements BaseCommand {
         const command = commands[commandArg.toLowerCase()];
 
         if (!command) {
-            ctx.msg.channel.send(`The command "${commandArg}" could not be found!`);
+            ctx.msg.channel.send(`The command "${commandArg}" could not be found or help for it is not available!`);
             return;
         }
 
