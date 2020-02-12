@@ -3,13 +3,13 @@ exports.up = async function(knex) {
         table.increments();
         table.bigInteger('killer_id');
         table.bigInteger('victim_id');
-        table.timestamps();
+        table.timestamps(true, true);
     })
 
     await knex.schema.createTable('simplecommands', (table) => {
-        table.string('command').primary();
-        table.string('response');
-        table.timestamps();
+        table.string('command', 50).primary();
+        table.string('response', 1000);
+        table.timestamps(true, true);
     })
 };
 

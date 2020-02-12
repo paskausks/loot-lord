@@ -6,7 +6,7 @@ import { filter } from 'rxjs/operators';
 import Discord from 'discord.js';
 import logger from 'signale';
 import commands from './commands';
-import { SimpleCommand } from './models';
+import SimpleCommand from './commands/simple-command';
 
 const main = async (): Promise<void> => {
     dotenv.config();
@@ -35,6 +35,8 @@ const main = async (): Promise<void> => {
     });
 
     const newMessage = (fromEvent(client, 'message') as Observable<Discord.Message>).pipe(
+        // TODO: Remove check if it starts with prefix to allow for
+        // random responses, counters, etc.
         filter((msg) => msg.content.startsWith(prefix) && !msg.author.bot),
         filter((msg) => msg.content.length > prefix.length),
     );
@@ -44,7 +46,11 @@ const main = async (): Promise<void> => {
         const command: string = tokens[0];
         const args: string[] = tokens.slice(1);
 
-        logger.info(`Received command "${command}" from ${msg.author.tag}`);
+        logger.info(
+            `Rcvd cmd "${command}" from ${msg.author.tag}`
+            + ` on "${msg.guild.name}", #${(msg.channel as Discord.TextChannel).name}.`
+            + ` Args: ${JSON.stringify(args)}`,
+        );
 
         const commandExecutor = commands[command];
 
@@ -59,15 +65,13 @@ const main = async (): Promise<void> => {
         }
 
         // Try simple commands
-        const [simpleCommand] = await cnx.select('command', 'response')
-            .from<SimpleCommand>('simplecommands')
-            .where('command', command)
-            .limit(1);
+        const simpleCommandDirectory = (commands.command as SimpleCommand);
+        const simpleCommand = await simpleCommandDirectory.getCommand(cnx, command);
 
         if (!simpleCommand) {
-            const simpleCommands = await cnx.select('command')
-                .from<SimpleCommand>('simplecommands');
-
+            // No matching command found.
+            // Create a list of builtins and custom commands.
+            const simpleCommands = await simpleCommandDirectory.getAll(cnx);
             const commandList = Object.keys(commands)
                 .concat(simpleCommands.map((cmd) => cmd.command));
 

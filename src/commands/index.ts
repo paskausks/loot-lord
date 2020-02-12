@@ -1,12 +1,12 @@
-import Foo from './foo';
+import SimpleCommand from './simple-command';
 import Help from './help';
 import BaseCommand from './base';
 
-interface CommandMap {
+export interface CommandMap {
     [key: string]: BaseCommand;
 }
 
 export default {
-    foo: new Foo(),
+    command: new SimpleCommand(),
     help: new Help(),
 } as CommandMap;
