@@ -11,4 +11,7 @@ export interface FriendlyFire {
 export interface SimpleCommand {
     command: string;
     response: string;
+    created_by_id: string;
+    created_at: string;
+    updated_at: string;
 }

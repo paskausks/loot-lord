@@ -1,7 +1,12 @@
 import Knex from 'knex';
 import BaseCommand, { ExecContext } from './base';
 import { SimpleCommand as SimpleCommandModel } from '../models';
-import { reactSuccess as success, reactFail as fail } from '../utils';
+import {
+    reactSuccess as success,
+    reactFail as fail,
+    getMoment,
+    getNickname,
+} from '../utils';
 
 export default class SimpleCommand implements BaseCommand {
     private table: string = 'simplecommands';
@@ -11,15 +16,16 @@ export default class SimpleCommand implements BaseCommand {
         const validSubCommands = [
             '`add`',
             '`rm`',
+            '`info`',
             '`list`',
         ].join(', ');
 
+        const { msg, knex } = ctx;
+
         if (!subCommand) {
-            ctx.msg.channel.send(`Missing sub command, try: ${validSubCommands}!`);
+            msg.channel.send(`Missing sub command, try: ${validSubCommands}!`);
             return;
         }
-
-        const { msg, knex } = ctx;
 
         // FIXME: Extract into separate methods to save indent.
         switch (subCommand) {
@@ -36,9 +42,23 @@ export default class SimpleCommand implements BaseCommand {
             );
             break;
         }
+        case 'info': {
+            const [commandQuery] = args;
+            const command = await this.getCommand(knex, commandQuery, ['created_by_id', 'created_at']);
+
+            if (!command) {
+                msg.channel.send('This command does not exist.');
+                return;
+            }
+
+            msg.channel.send(
+                `Command "${commandQuery}" created at ${getMoment(command.created_at).format('lll')}`
+                + ` by ${await getNickname(msg, command.created_by_id)}.`,
+            );
+
+            break;
+        }
         case 'add': {
-            // TODO: Handle varchar limits, strip, validate etc.!
-            // TODO: React on success not to spam.
             const [command, ...responseSplit] = args;
             const response = responseSplit.join(' ');
 
@@ -71,6 +91,7 @@ export default class SimpleCommand implements BaseCommand {
                 await knex(this.table).insert({
                     command,
                     response,
+                    created_by_id: msg.author.id,
                 });
             } catch (e) {
                 if (e.errno && e.errno === 19) {
@@ -119,11 +140,12 @@ export default class SimpleCommand implements BaseCommand {
         return 'Create and manage custom commands with simple, static responses:\n'
              + '* `command add <command> <some response text>` - add a new command.\n'
              + '* `command rm <command>` - remove a command.\n'
+             + '* `command info <command>` - shows some basic information about the command.\n'
              + '* `command list` - list all saved commands.\n';
     }
 
-    public async getCommand(knex: Knex, name: string): Promise<SimpleCommandModel | undefined> {
-        const [result] = await knex.select('command', 'response')
+    public async getCommand(knex: Knex, name: string, fields: string[] = ['command', 'response']): Promise<SimpleCommandModel | undefined> {
+        const [result] = await knex.select(...fields)
             .from<SimpleCommand>('simplecommands')
             .where('command', name)
             .limit(1);

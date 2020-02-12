@@ -1,14 +1,15 @@
 exports.up = async function(knex) {
     await knex.schema.createTable('friendlyfire', (table) => {
         table.increments();
-        table.bigInteger('killer_id');
-        table.bigInteger('victim_id');
+        table.string('killer_id');
+        table.string('victim_id');
         table.timestamps(true, true);
     })
 
     await knex.schema.createTable('simplecommands', (table) => {
         table.string('command', 50).primary();
         table.string('response', 1000);
+        table.string('created_by_id');
         table.timestamps(true, true);
     })
 };
