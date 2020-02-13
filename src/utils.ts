@@ -35,7 +35,12 @@ export const getNickname = async (
 
     if (!member) {
         // Has left the server
-        const user = await source.client.fetchUser(userId);
+        let user;
+        try {
+            user = await source.client.fetchUser(userId);
+        } catch (e) {
+            return 'Unknown';
+        }
         return user.username;
     }
 

@@ -6,6 +6,8 @@ export interface FriendlyFire {
     // strings, so that's convenient.
     killer_id: string;
     victim_id: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface SimpleCommand {

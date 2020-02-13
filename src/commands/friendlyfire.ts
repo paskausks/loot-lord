@@ -1,6 +1,11 @@
-import BaseCommand, { ExecContext } from './base';
 import Discord from 'discord.js';
-import { reactSuccess as success, reactFail as fail } from '../utils';
+import BaseCommand, { ExecContext } from './base';
+import {
+    reactSuccess as success,
+    reactFail as fail,
+    getNickname,
+    getMoment,
+} from '../utils';
 
 export default class FriendlyFire implements BaseCommand {
     private table: string = 'friendlyfire';
@@ -81,8 +86,74 @@ export default class FriendlyFire implements BaseCommand {
             success(msg);
             break;
         }
-        case 'stats':
+        case 'stats': {
+            const topKillers = await knex(this.table)
+                .select('killer_id')
+                .count('killer_id as kill_count')
+                .groupBy('killer_id')
+                .orderBy('kill_count', 'desc');
+
+            if (!topKillers.length) {
+                msg.channel.send('No data.');
+                return;
+            }
+
+            const topVictims = await knex(this.table)
+                .select('victim_id')
+                .count('victim_id as death_count')
+                .groupBy('victim_id')
+                .orderBy('death_count', 'desc');
+
+            const [latest] = await knex(this.table)
+                .select('killer_id', 'victim_id', 'created_at')
+                .limit(1)
+                .orderBy('created_at', 'desc');
+
+            const [nemesis] = await knex(this.table)
+                .select('killer_id', 'victim_id')
+                .count('* as occurence_count')
+                .limit(1)
+                .groupBy('killer_id', 'victim_id')
+                .orderBy('occurence_count', 'desc');
+
+            const [
+                latestKiller,
+                latestVictim,
+                nemesisKiller,
+                nemesisVictim,
+            ] = await Promise.all([
+                latest.killer_id,
+                latest.victim_id,
+                nemesis.killer_id,
+                nemesis.victim_id,
+            ].map((v) => getNickname(msg, v)));
+            const latestTimesince = getMoment(latest.created_at).fromNow();
+            let killerList = '';
+            let i = 0;
+            for (i; i < topKillers.length; i += 1) {
+                const row = topKillers[i];
+                killerList += `\n${i + 1}. ${await getNickname(msg, row.killer_id.toString())} (${row.kill_count} kills)`;
+            }
+
+            let victimList = '';
+            for (i = 0; i < topVictims.length; i += 1) {
+                const row = topVictims[i];
+                victimList += `\n${i + 1}. ${await getNickname(msg, row.victim_id.toString())} (${row.death_count} deaths)`;
+            }
+
+            msg.channel.send(
+                'Here\'s what\'s up.\n\n'
+                + '**Top killers**:'
+                + `${killerList}\n\n`
+                + '**Top victims**:'
+                + `${victimList}\n\n`
+                + '**Latest "accident"**:'
+                + ` ${latestKiller} killed ${latestVictim} ${latestTimesince}.\n`
+                + '**Nemesis**:'
+                + ` ${nemesisKiller} wasted ${nemesisVictim} ${nemesis.occurence_count} times.`,
+            );
             break;
+        }
         default:
             msg.channel.send(
                 `Invalid subcommand. Try: ${validSubCommands}`,
@@ -95,8 +166,6 @@ export default class FriendlyFire implements BaseCommand {
         + '* `friendly add me @VictimNick` - adds you as the killer of VictimNick.\n'
         + '* `friendly add @KillerNick me` - adds you as the victim of KillerNick.\n'
         + '* `friendly add @KillerNick @VictimNick` - adds KillerNick as the killer of VictimNick.\n'
-        + '* `friendly add @KillerNick @VictimNick` - adds KillerNick as the killer of VictimNick.\n'
-        + '* `friendly stats` - lists the top friend killers,'
-        + ' the latest "accident", and who has killed who the most.';
+        + '* `friendly stats` - lists statistics about the whole deal.';
     }
 }

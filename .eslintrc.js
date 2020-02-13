@@ -29,6 +29,7 @@ module.exports = {
     },
     rules: {
         indent: ['error', 4],
+        'no-await-in-loop': 'off',
         'lines-between-class-members': ['off'],
         'class-methods-use-this': 'off',
         'import/no-unresolved': [2, { 'commonjs': true, 'amd': true }],
