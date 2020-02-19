@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { Message, Client } from 'discord.js';
 import * as Knex from 'knex';
 
 export interface ExecContext {
@@ -7,7 +7,13 @@ export interface ExecContext {
     args: string[];
 }
 
+export interface UpdateContext {
+    knex: Knex;
+    discord: Client;
+}
+
 export default interface BaseCommand {
     exec(ctx: ExecContext): Promise<void>;
+    update(ctx: UpdateContext): Promise<void>;
     help(): string;
-};
+}

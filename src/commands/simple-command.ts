@@ -136,6 +136,8 @@ export default class SimpleCommand implements BaseCommand {
         }
     }
 
+    public async update() {}
+
     public help(): string {
         return 'Create and manage custom commands with simple, static responses:\n'
              + '* `command add <command> <some response text>` - add a new command.\n'

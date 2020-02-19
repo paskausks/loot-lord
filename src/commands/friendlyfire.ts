@@ -161,6 +161,8 @@ export default class FriendlyFire implements BaseCommand {
         }
     }
 
+    public async update(): Promise<void> {}
+
     public help(): string {
         return 'Keeps track of accidental friend murder 🙃\n'
         + '* `friendly add me @VictimNick` - adds you as the killer of VictimNick.\n'

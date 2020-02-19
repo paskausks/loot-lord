@@ -1,4 +1,4 @@
-import BaseCommand, { ExecContext } from './base';
+import BaseCommand, { ExecContext, UpdateContext } from './base';
 import commands from '.';
 
 export default class Help implements BaseCommand {
@@ -18,6 +18,8 @@ export default class Help implements BaseCommand {
 
         ctx.msg.channel.send(command.help());
     }
+
+    public async update(): Promise<void> {}
 
     public help(): string {
         return 'Displays help for other commands.';

@@ -35,6 +35,18 @@ const main = async (): Promise<void> => {
         logger.success(`Logged in as ${client.user.tag}!`);
     });
 
+    // Hook update command to be called once a minute.
+    const commandInstances = Object.values(commands);
+    const updateContext = {
+        knex: cnx,
+        discord: client,
+    };
+    setInterval(() => {
+        Promise.all(commandInstances.map((c) => c.update(updateContext))).then(() => {
+            logger.info('Update cycle done.');
+        });
+    }, 60 * 1000);
+
     const newMessage = (fromEvent(client, 'message') as Observable<Discord.Message>).pipe(
         // TODO: Remove check if it starts with prefix to allow for
         // random responses, counters, etc.

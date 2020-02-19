@@ -44,6 +44,7 @@ module.exports = {
 
         // See https://stackoverflow.com/a/56848207/3775078
         'no-unused-vars': 'off',
-        '@typescript-eslint/no-unused-vars': 'error'
+        '@typescript-eslint/no-unused-vars': 'error',
+        'no-empty-function': 'off',
     },
 };
