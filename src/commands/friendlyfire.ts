@@ -44,7 +44,7 @@ export default class FriendlyFire implements BaseCommand {
 
             let killerId: string = msg.author.id;
             if (killer !== AUTHOR) {
-                if (!pattern.test(killer)) {
+                if (!new RegExp(pattern).test(killer)) {
                     fail(msg, 'Killer is not a valid mention.');
                     return;
                 }
