@@ -30,7 +30,8 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "start": "node dist/index.js",
     "test": "jest",
-    "knex": "knex"
+    "knex": "knex",
+    "migrate": "knex migrate:latest"
   },
   "keywords": [],
   "author": "",

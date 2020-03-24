@@ -79,7 +79,7 @@ const main = async (): Promise<void> => {
 
         // Try simple commands
         const simpleCommandDirectory = (commands.command as SimpleCommand);
-        const simpleCommand = await simpleCommandDirectory.getCommand(cnx, command);
+        const simpleCommand = await simpleCommandDirectory.getCommand(cnx, command, ['command', 'response'], client);
 
         if (!simpleCommand) {
             // No matching command found.

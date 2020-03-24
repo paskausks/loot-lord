@@ -1,4 +1,5 @@
 import Knex from 'knex';
+import Discord from 'discord.js';
 import BaseCommand, { ExecContext } from './base';
 import { SimpleCommand as SimpleCommandModel } from '../models';
 import {
@@ -13,12 +14,9 @@ export default class SimpleCommand implements BaseCommand {
 
     public async exec(ctx: ExecContext) {
         const [subCommand, ...args] = ctx.args;
-        const validSubCommands = [
-            '`add`',
-            '`rm`',
-            '`info`',
-            '`list`',
-        ].join(', ');
+        const validSubCommands = ['`add`', '`rm`', '`info`', '`list`'].join(
+            ', ',
+        );
 
         const { msg, knex } = ctx;
 
@@ -38,13 +36,18 @@ export default class SimpleCommand implements BaseCommand {
             }
 
             msg.channel.send(
-                `Currently saved commands: ${all.map((cmd) => `\`${cmd.command}\``).join(', ')}`,
+                `Currently saved commands: ${all
+                    .map((cmd) => `\`${cmd.command}\``)
+                    .join(', ')}`,
             );
             break;
         }
         case 'info': {
             const [commandQuery] = args;
-            const command = await this.getCommand(knex, commandQuery, ['created_by_id', 'created_at']);
+            const command = await this.getCommand(knex, commandQuery, [
+                'created_by_id',
+                'created_at',
+            ]);
 
             if (!command) {
                 msg.channel.send('This command does not exist.');
@@ -52,8 +55,10 @@ export default class SimpleCommand implements BaseCommand {
             }
 
             msg.channel.send(
-                `Command "${commandQuery}" created at ${getMoment(command.created_at).format('lll')}`
-                + ` by ${await getNickname(msg, command.created_by_id)}.`,
+                `Command '${commandQuery}' created at ${getMoment(
+                    command.created_at,
+                ).format('lll')}`
+                    + ` by ${await getNickname(msg, command.created_by_id)}.`,
             );
 
             break;
@@ -73,17 +78,26 @@ export default class SimpleCommand implements BaseCommand {
             }
 
             if (command.length > 50) {
-                fail(msg, 'The length of the command can\'t exceed 50 characters.');
+                fail(
+                    msg,
+                    "The length of the command can't exceed 50 characters.",
+                );
                 return;
             }
 
             if (response.length > 1000) {
-                fail(msg, 'The length of the response can\'t exceed 1000 characters.');
+                fail(
+                    msg,
+                    "The length of the response can't exceed 1000 characters.",
+                );
                 return;
             }
 
             if (!/^[a-zA-Z0-9]+$/.test(command)) {
-                fail(msg, 'The command name can only contain letters and numbers');
+                fail(
+                    msg,
+                    'The command name can only contain letters and numbers',
+                );
                 return;
             }
 
@@ -95,10 +109,7 @@ export default class SimpleCommand implements BaseCommand {
                 });
             } catch (e) {
                 if (e.errno && e.errno === 19) {
-                    fail(
-                        msg,
-                        `The command "${command}" is already taken!`,
-                    );
+                    fail(msg, `The command '${command}' is already taken!`);
                     return;
                 }
 
@@ -122,7 +133,10 @@ export default class SimpleCommand implements BaseCommand {
                 .del();
 
             if (!rowsAffected) {
-                fail(msg, `There doesn't seem to be a command called "${command}".`);
+                fail(
+                    msg,
+                    `There doesn't seem to be a command called '${command}'.`,
+                );
                 return;
             }
 
@@ -139,23 +153,58 @@ export default class SimpleCommand implements BaseCommand {
     public async update() {}
 
     public help(): string {
-        return 'Create and manage custom commands with simple, static responses:\n'
-             + '* `command add <command> <some response text>` - add a new command.\n'
-             + '* `command rm <command>` - remove a command.\n'
-             + '* `command info <command>` - shows some basic information about the command.\n'
-             + '* `command list` - list all saved commands.\n';
+        return (
+            'Create and manage custom commands with simple, static responses:\n'
+            + '* `command add <command> <some response text>` - add a new command.\n'
+            + '* `command rm <command>` - remove a command.\n'
+            + '* `command info <command>` - shows some basic information about the command.\n'
+            + '* `command list` - list all saved commands.\n'
+        );
     }
 
-    public async getCommand(knex: Knex, name: string, fields: string[] = ['command', 'response']): Promise<SimpleCommandModel | undefined> {
-        const [result] = await knex.select(...fields)
+    public async getCommand(
+        knex: Knex,
+        name: string,
+        fields: string[] = ['command', 'response'],
+        discord?: Discord.Client,
+    ): Promise<SimpleCommandModel | undefined> {
+        const [result] = await knex
+            .select(...fields)
             .from<SimpleCommand>('simplecommands')
             .where('command', name)
             .limit(1);
-        return result;
+        return this.parseCommand(result, discord);
+    }
+
+    private parseCommand(
+        command: SimpleCommandModel,
+        discord?: Discord.Client,
+    ): SimpleCommandModel | undefined {
+        if (!command) { return undefined; }
+        // Parse command's response if it's using any keywords
+        // if so, get the needed data from Discord api
+        const { response } = command;
+
+        const randomRegex = /<random>/g;
+        const getRandomUsername = (): string => {
+            const users = discord?.users
+                .array()
+                .filter((user) => user.id !== '1') || [];
+            if (!users.length) {
+                return '';
+            }
+            const index = Math.floor(Math.random() * users.length);
+            return `<@${users[index].id}>`;
+        };
+
+        const newResponse = response.replace(randomRegex, getRandomUsername());
+
+        return { ...command, response: newResponse };
     }
 
     public async getAll(knex: Knex): Promise<SimpleCommandModel[]> {
-        return knex.select('command')
+        return knex
+            .select('command')
             .from<SimpleCommandModel>('simplecommands');
     }
 }
