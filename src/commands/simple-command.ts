@@ -9,6 +9,29 @@ import {
     getNickname,
 } from '../utils';
 
+interface KeyMap {
+    [key: string]: (discord?: Discord.Client) => string;
+}
+
+const keywordKeyMap: KeyMap = {
+    year: () => `${new Date().getFullYear()}`,
+    percentage: () => `${Math.round(Math.random() * 100)}%`,
+    self: () => {
+        const senderUser = { id: '1' };
+        return `<@${senderUser.id}>`;
+    },
+    random: (discord?: Discord.Client) => {
+        const users = discord?.users
+            .array()
+            .filter((user) => user.id !== '1') || [];
+        if (!users.length) {
+            return '';
+        }
+        const index = Math.floor(Math.random() * users.length);
+        return `<@${users[index].id}>`;
+    },
+};
+
 export default class SimpleCommand implements BaseCommand {
     private table: string = 'simplecommands';
 
@@ -182,22 +205,10 @@ export default class SimpleCommand implements BaseCommand {
     ): SimpleCommandModel | undefined {
         if (!command) { return undefined; }
         // Parse command's response if it's using any keywords
-        // if so, get the needed data from Discord api
+        // and replace keyword with other data
         const { response } = command;
 
-        const randomRegex = /<random>/g;
-        const getRandomUsername = (): string => {
-            const users = discord?.users
-                .array()
-                .filter((user) => user.id !== '1') || [];
-            if (!users.length) {
-                return '';
-            }
-            const index = Math.floor(Math.random() * users.length);
-            return `<@${users[index].id}>`;
-        };
-
-        const newResponse = response.replace(randomRegex, getRandomUsername());
+        const newResponse = response.replace(/<\w+>/gi, (match) => keywordKeyMap[match.slice(1, -1)](discord));
 
         return { ...command, response: newResponse };
     }
