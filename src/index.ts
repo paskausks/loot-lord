@@ -79,7 +79,7 @@ const main = async (): Promise<void> => {
 
         // Try simple commands
         const simpleCommandDirectory = (commands.command as SimpleCommand);
-        const simpleCommand = await simpleCommandDirectory.getCommand(cnx, command, ['command', 'response'], client);
+        const simpleCommand = await simpleCommandDirectory.getCommand(cnx, command, ['command', 'response']);
 
         if (!simpleCommand) {
             // No matching command found.
@@ -96,7 +96,7 @@ const main = async (): Promise<void> => {
             return;
         }
 
-        await msg.channel.send(simpleCommand.response);
+        await msg.channel.send(simpleCommandDirectory.parseCommand(simpleCommand, msg).response);
     }, undefined, () => logger.log('complete'));
 
     client.login(token);

@@ -1,4 +1,4 @@
-import BaseCommand, { ExecContext, UpdateContext } from './base';
+import BaseCommand, { ExecContext } from './base';
 import commands from '.';
 
 export default class Help implements BaseCommand {

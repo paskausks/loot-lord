@@ -9,19 +9,17 @@ import {
     getNickname,
 } from '../utils';
 
+
 interface KeyMap {
-    [key: string]: (discord?: Discord.Client) => string;
+    [key: string]: (message: Discord.Message) => string;
 }
 
 const keywordKeyMap: KeyMap = {
     year: () => `${new Date().getFullYear()}`,
     percentage: () => `${Math.round(Math.random() * 100)}%`,
-    self: () => {
-        const senderUser = { id: '1' };
-        return `<@${senderUser.id}>`;
-    },
-    random: (discord?: Discord.Client) => {
-        const users = discord?.users
+    self: (message: Discord.Message) => `<@${message.author.id}>`,
+    random: (message: Discord.Message) => {
+        const users = message.client.users
             .array()
             .filter((user) => user.id !== '1') || [];
         if (!users.length) {
@@ -30,6 +28,7 @@ const keywordKeyMap: KeyMap = {
         const index = Math.floor(Math.random() * users.length);
         return `<@${users[index].id}>`;
     },
+    arg: (message: Discord.Message) => message.content.split(' ').splice(1).join(' ')
 };
 
 export default class SimpleCommand implements BaseCommand {
@@ -66,6 +65,7 @@ export default class SimpleCommand implements BaseCommand {
             break;
         }
         case 'info': {
+            // FIXME: "!command info" without arguments does not work
             const [commandQuery] = args;
             const command = await this.getCommand(knex, commandQuery, [
                 'created_by_id',
@@ -181,34 +181,32 @@ export default class SimpleCommand implements BaseCommand {
             + '* `command add <command> <some response text>` - add a new command.\n'
             + '* `command rm <command>` - remove a command.\n'
             + '* `command info <command>` - shows some basic information about the command.\n'
-            + '* `command list` - list all saved commands.\n'
+            + '* `command list` - list all saved commands.\n\n'
+            + `Available template tags for commands: ${Object.keys(keywordKeyMap).map((v) => `\`<${v}>\``).join(',')}`
         );
     }
 
     public async getCommand(
         knex: Knex,
         name: string,
-        fields: string[] = ['command', 'response'],
-        discord?: Discord.Client,
+        fields: string[] = ['command', 'response']
     ): Promise<SimpleCommandModel | undefined> {
         const [result] = await knex
             .select(...fields)
             .from<SimpleCommand>('simplecommands')
             .where('command', name)
             .limit(1);
-        return this.parseCommand(result, discord);
+        return result;
     }
 
-    private parseCommand(
+    public parseCommand(
         command: SimpleCommandModel,
-        discord?: Discord.Client,
-    ): SimpleCommandModel | undefined {
-        if (!command) { return undefined; }
+        message: Discord.Message,
+    ): SimpleCommandModel {
         // Parse command's response if it's using any keywords
         // and replace keyword with other data
         const { response } = command;
-
-        const newResponse = response.replace(/<\w+>/gi, (match) => keywordKeyMap[match.slice(1, -1)](discord));
+        const newResponse = response.replace(/<\w+>/gi, (match) => keywordKeyMap[match.slice(1, -1)](message));
 
         return { ...command, response: newResponse };
     }
