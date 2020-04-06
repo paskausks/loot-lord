@@ -16,6 +16,7 @@
     "eslint-import-resolver-node": "^0.3.3",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-jest": "^23.7.0",
+    "husky": "^4.2.3",
     "jest": "^25.1.0",
     "nodemon": "^2.0.2",
     "ts-jest": "^25.2.0",
@@ -47,5 +48,9 @@
   },
   "signale": {
     "displayLabel": false
+  },
+  "husky": {
+    "hooks": {
+    }
   }
 }
