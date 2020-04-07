@@ -38,3 +38,15 @@ jobs:
     - run: npm test
       env:
         CI: true
+    
+    - name: SSH deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        passphrase: ${{ secrets.PASSPHRASE }}
+        script: |
+          # Execute script in the deployment user's
+          # home
+          ~/loot-lord.sh
