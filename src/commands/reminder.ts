@@ -1,6 +1,5 @@
 import moment from 'moment';
 import BaseCommand, { ExecContext, UpdateContext } from './base';
-import commands from '.';
 
 /*
  * Reminders inspired by Slack.
@@ -14,7 +13,7 @@ interface ParseResult {
 
 export default class Reminder implements BaseCommand {
     public async exec(ctx: ExecContext) {
-        const [subCommand, ...args] = ctx.args;
+        const [subCommand] = ctx.args;
 
         const validSubCommands = [
             '`add`',
@@ -22,7 +21,7 @@ export default class Reminder implements BaseCommand {
             '`list`',
         ].join(', ');
 
-        const { msg, knex } = ctx;
+        const { msg } = ctx;
 
         if (!ctx.args.length) {
             ctx.msg.channel.send(this.help());
@@ -49,7 +48,7 @@ export default class Reminder implements BaseCommand {
         // so we treat them separately.
         const sourceTime = moment(from);
         const targetTime = sourceTime.clone();
-        let match = /(.+) in (\d+\.?\d*) ([a-zA-Z]+)$/.exec(message);
+        const match = /(.+) in (\d+\.?\d*) ([a-zA-Z]+)$/.exec(message);
 
         if (!match) {
             throw new Error('Not a valid match!');

@@ -28,7 +28,7 @@ const keywordKeyMap: KeyMap = {
         const index = Math.floor(Math.random() * users.length);
         return `<@${users[index].id}>`;
     },
-    arg: (message: Discord.Message) => message.content.split(' ').splice(1).join(' ')
+    arg: (message: Discord.Message) => message.content.split(' ').splice(1).join(' '),
 };
 
 export default class SimpleCommand implements BaseCommand {
@@ -189,7 +189,7 @@ export default class SimpleCommand implements BaseCommand {
     public async getCommand(
         knex: Knex,
         name: string,
-        fields: string[] = ['command', 'response']
+        fields: string[] = ['command', 'response'],
     ): Promise<SimpleCommandModel | undefined> {
         const [result] = await knex
             .select(...fields)
