@@ -38,7 +38,11 @@ jobs:
     - run: npm test
       env:
         CI: true
+
+  deploy:
+    runs-on: ubuntu-latest
     
+    steps:
     - name: SSH deploy
       uses: appleboy/ssh-action@master
       with:
@@ -46,7 +50,8 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         passphrase: ${{ secrets.PASSPHRASE }}
+        
+        # Execute script in the deployment user's
+        # home dir to keep commands env-dependent.
         script: |
-          # Execute script in the deployment user's
-          # home
           ~/loot-lord.sh
