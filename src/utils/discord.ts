@@ -28,6 +28,12 @@ export const getGuildMember = async (
     (m: Discord.GuildMember) => m.user.id === userId,
 );
 
+export const getUser = async (
+    source: Discord.Client, userId: string,
+): Promise<Discord.User | null> => source.users.find(
+    (user: Discord.User) => user.id === userId,
+);
+
 export const getNickname = async (
     source: Discord.Message, userId: string,
 ): Promise<string> => {

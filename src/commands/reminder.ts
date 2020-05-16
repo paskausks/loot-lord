@@ -5,6 +5,7 @@ import { isValidSequenceNumber } from '../utils/number';
 import {
     reactSuccess as success,
     reactFail as fail,
+    getUser,
 } from '../utils/discord';
 import { Reminder as ReminderModel } from '../models';
 
@@ -221,7 +222,38 @@ export default class Reminder implements BaseCommand {
         }
     }
 
-    public async update(_ctx: UpdateContext): Promise<void> {}
+    public async update(ctx: UpdateContext): Promise<void> {
+        const all = await ctx.knex
+            .select()
+            .from<ReminderModel>(this.table)
+            .where('reminder_at', '<=', moment().toISOString());
+
+        if (!all.length) {
+            return;
+        }
+
+        // Clear processed.
+        await ctx.knex
+            .select()
+            .from(this.table)
+            .whereIn('id', (all as ReminderModel[]).map((reminder) => reminder.id))
+            .del();
+
+        // Notify users.
+        all.forEach((reminder: ReminderModel) => {
+            getUser(ctx.discord, reminder.user_id).then((user) => {
+                if (!user) {
+                    return;
+                }
+
+                user.send(
+                    `You wanted to be reminded of:\n\n${reminder.reminder}\n\n`
+                    + 'Here\'s the message where you created the '
+                    + `reminder - ${reminder.reminder_url}`,
+                );
+            });
+        });
+    }
 
     private async add(ctx: ExecContext, reminderQuery: string) {
         const { msg, knex } = ctx;
@@ -248,6 +280,7 @@ export default class Reminder implements BaseCommand {
             user_id: msg.author.id,
             reminder,
             reminder_at: dateTime.toISOString(),
+            reminder_url: msg.url,
         });
 
         success(
@@ -258,7 +291,7 @@ export default class Reminder implements BaseCommand {
     }
 
     /**
-     * Returns all reminders, the closest first.
+     * Returns all reminders for a user
      */
     private async getAll(knex: Knex, forId: string): Promise<ReminderModel[]> {
         return knex
@@ -266,6 +299,14 @@ export default class Reminder implements BaseCommand {
             .from<ReminderModel>(this.table)
             .where('user_id', forId)
             .orderBy('reminder_at', 'asc');
+    }
+
+    /**
+     * Returns all non-queued reminders
+     * which just expired and therefore need to be
+     * processed.
+     */
+    private async getUnprocessed(knex: Knex): Promise<ReminderModel[]> {
     }
 
     private async remove(ctx: ExecContext) {
@@ -306,6 +347,12 @@ export default class Reminder implements BaseCommand {
         }
 
         const all = await this.getAll(ctx.knex, ctx.msg.author.id);
+
+        if (!all.length) {
+            ctx.msg.channel.send('You currently don\'t have any reminders.');
+            return;
+        }
+
         const response = all.map((reminder: ReminderModel, index: number) => {
             const dateTime = moment(reminder.reminder_at);
             const dateFormatted = zone ? dateTime.tz(tzArg) : dateTime.utc();
@@ -338,7 +385,7 @@ export default class Reminder implements BaseCommand {
             + '* `reminder rm <reminder number>` - remove a reminder (get the number with `list`)\n'
             + '* `reminder add Some reminder text <time>` - add a new reminder "Some reminder text" for the given time.\n\n'
             + 'Valid input examples for the <time> value are `in 17 minutes`, `in 1 hour`, `in 3 days`, '
-            + '`on January 1`, `on March 4th`, `on 9 Feb`, `on 30.11.2020` (MM.DD.YYYY), '
+            + '`on January 1`, `on March 4th`, `on 9 Feb`, `on 30.11.2020` (DD.MM.YYYY), '
             + '`on Thursday`, `on Wed`, `on friday`, etc.';
     }
 }

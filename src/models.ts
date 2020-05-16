@@ -23,6 +23,7 @@ export interface Reminder {
     user_id: string;
     reminder: string;
     reminder_at: string;
+    reminder_url: string;
     created_at: string;
     updated_at: string;
 }
