@@ -12,6 +12,11 @@ export const isValidSequenceNumber = (number: string): boolean => {
         return false;
     }
 
+    if (['11', '12', '13'].some((v) => head.substring(head.length - 2, index) === v)) {
+        // Kind of special cases
+        return tail === 'th';
+    }
+
     switch (head[head.length - 1]) {
     case '1':
         return tail === 'st';
