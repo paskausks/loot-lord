@@ -32,7 +32,7 @@ const messageParsers: ReminderMessageParser[] = [
      * e.g. "in 3 hours", "in 5 days", etc.
      */
     (message, sourceDate) => {
-        const result = /(.+) in (\d+\.?\d*) ([a-zA-Z]+)$/.exec(message);
+        const result = /([\s\S]+)in (\d+\.?\d*) ([a-zA-Z]+)$/.exec(message);
         const targetTime = sourceDate.clone();
 
         if (!result) {
@@ -65,7 +65,7 @@ const messageParsers: ReminderMessageParser[] = [
      * "on 3rd April", "on 14th of Nov" etc.
      */
     (message, sourceDate) => {
-        let result = /(.+) on ([a-zA-Z]{2,}) (\d+)(st|nd|rd|th)?$/.exec(message);
+        let result = /([\s\S]+)on ([a-zA-Z]{2,}) (\d+)(st|nd|rd|th)?$/.exec(message);
         let month: string;
         let date: number;
         let suffix: string | undefined;
@@ -77,7 +77,7 @@ const messageParsers: ReminderMessageParser[] = [
             suffix = result[4];
         } else {
             // Try reversed
-            result = /(.+) on (\d+)(st|nd|rd|th)? (?:of )?([a-zA-Z]{3,})/.exec(message);
+            result = /([\s\S]+)on (\d+)(st|nd|rd|th)? (?:of )?([a-zA-Z]{3,})/.exec(message);
 
             if (!result) {
                 return null;
@@ -122,7 +122,7 @@ const messageParsers: ReminderMessageParser[] = [
      * etc.
      */
     (message, sourceDate) => {
-        const result = /(.+) on (\d{1,2}\.\d{1,2}\.(:?\d{2}|\d{4}))$/.exec(message);
+        const result = /([\s\S]+)on (\d{1,2}\.\d{1,2}\.(:?\d{2}|\d{4}))$/.exec(message);
 
         if (!result) {
             return null;
@@ -150,7 +150,7 @@ const messageParsers: ReminderMessageParser[] = [
      * etc.
      */
     (message) => {
-        const result = /(.+) on ([a-zA-Z]{3,9})$/.exec(message);
+        const result = /([\s\S]+)on ([a-zA-Z]{3,9})$/.exec(message);
 
         if (!result) {
             return null;
@@ -246,11 +246,12 @@ export default class Reminder implements BaseCommand {
                     return;
                 }
 
-                user.send(
-                    `You wanted to be reminded of:\n\n${reminder.reminder}\n\n`
-                    + 'Here\'s the message where you created the '
-                    + `reminder - ${reminder.reminder_url}`,
-                );
+                user.send(`${reminder.reminder}\n`, {
+                    embed: {
+                        description: `_This is an automated reminder\nCreated with [this message](${reminder.reminder_url})._`,
+                        color: 2258916,
+                    },
+                });
             });
         });
     }
@@ -286,7 +287,7 @@ export default class Reminder implements BaseCommand {
         success(
             msg,
             'Your reminder has been added! I\'ll notify you about it at '
-            + `**${dateTime.utc().format('lll')} UTC - ${dateTime.fromNow()}**!`,
+            + `${dateTime.utc().format('lll')} UTC - _${dateTime.fromNow()}_!`,
         );
     }
 
@@ -299,14 +300,6 @@ export default class Reminder implements BaseCommand {
             .from<ReminderModel>(this.table)
             .where('user_id', forId)
             .orderBy('reminder_at', 'asc');
-    }
-
-    /**
-     * Returns all non-queued reminders
-     * which just expired and therefore need to be
-     * processed.
-     */
-    private async getUnprocessed(knex: Knex): Promise<ReminderModel[]> {
     }
 
     private async remove(ctx: ExecContext) {
@@ -353,13 +346,22 @@ export default class Reminder implements BaseCommand {
             return;
         }
 
-        const response = all.map((reminder: ReminderModel, index: number) => {
+        const fields = all.map((reminder: ReminderModel, index: number) => {
             const dateTime = moment(reminder.reminder_at);
             const dateFormatted = zone ? dateTime.tz(tzArg) : dateTime.utc();
-            return `${index + 1}. ${reminder.reminder} (${dateFormatted.format('lll')}, ${dateTime.fromNow()})`;
-        }).reduce((prev: string, current: string) => `${prev}\n${current}`, '');
+            return {
+                name: `**${index + 1}** - _${dateFormatted.format('lll')}_`,
+                value: `${reminder.reminder}`,
+            };
+        });
 
-        ctx.msg.channel.send(`Here are your reminders (all times in ${zone ? zone.name : 'UTC'}):\n${response}`);
+        ctx.msg.channel.send({
+            embed: {
+                title: 'Your reminders',
+                description: `All times shown in ${zone ? zone.name : 'UTC'}.\n\n`,
+                fields,
+            },
+        });
     }
 
     public parseReminder(message: string, from: Date = new Date()): ParseResult | null {
