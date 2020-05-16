@@ -42,8 +42,8 @@ export default class SimpleCommand implements BaseCommand {
 
         const { msg, knex } = ctx;
 
-        if (!subCommand) {
-            msg.channel.send(`Missing sub command, try: ${validSubCommands}!`);
+        if (!ctx.args.length) {
+            msg.channel.send(this.help());
             return;
         }
 

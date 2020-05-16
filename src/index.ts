@@ -43,7 +43,7 @@ const main = async (): Promise<void> => {
     };
     setInterval(() => {
         Promise.all(commandInstances.map((c) => c.update(updateContext))).then(() => {
-            logger.info('Update cycle done.');
+            logger.debug('Update cycle done.');
         });
     }, 60 * 1000);
 
