@@ -1,7 +1,7 @@
 {
   "name": "loot-lord",
   "version": "0.1.0",
-  "description": "A escape from tarkov bot",
+  "description": "Yet another Discord bot",
   "main": "dist/index.js",
   "private": true,
   "devDependencies": {
