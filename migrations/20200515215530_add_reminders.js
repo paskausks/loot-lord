@@ -3,7 +3,8 @@ exports.up = async function(knex) {
         table.increments();
         table.string('user_id', 32).notNullable();
         table.string('reminder').notNullable();
-        table.datetime('reminder_at', { useTz: true })
+        table.datetime('reminder_at', { useTz: true });
+        table.string('reminder_url').notNullable();
         table.timestamps(true, true);
 
         table.index('user_id');
