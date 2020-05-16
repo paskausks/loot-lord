@@ -1,10 +1,10 @@
-import moment from 'moment';
+import Knex from 'knex';
+import moment from 'moment-timezone';
 import BaseCommand, { ExecContext, UpdateContext } from './base';
 import { isValidSequenceNumber } from '../utils/number';
 import {
     reactSuccess as success,
     reactFail as fail,
-    getMoment,
 } from '../utils/discord';
 import { Reminder as ReminderModel } from '../models';
 
@@ -176,6 +176,15 @@ export default class Reminder implements BaseCommand {
     private table: string = 'reminders';
     private static REMINDER_MAXLENGTH: number = 250;
 
+    constructor() {
+        // Load timezone data
+        moment.tz.load({
+            version: 'latest',
+            zones: [],
+            links: [],
+        });
+    }
+
     public async exec(ctx: ExecContext) {
         const [subCommand, ...args] = ctx.args;
 
@@ -185,51 +194,24 @@ export default class Reminder implements BaseCommand {
             '`list`',
         ].join(', ');
 
-        const { msg, knex } = ctx;
+        const { msg } = ctx;
 
         if (!ctx.args.length) {
             msg.channel.send(this.help());
             return;
         }
+
         switch (subCommand) {
         case 'rm':
+            await this.remove(ctx);
             break;
         case 'add': {
             const reminderQuery = args.join(' ');
-            const reminderData = this.parseReminder(reminderQuery);
-
-            if (!reminderData) {
-                fail(msg, 'Your syntax is incorrect. Check the command help and try again!');
-                return;
-            }
-
-            const { reminder, dateTime } = reminderData;
-            const reminderLength = reminder.length;
-
-            if (reminderLength > Reminder.REMINDER_MAXLENGTH) {
-                fail(msg, `Your reminder is too long. It has ${reminderLength} characters, but should not exceed ${Reminder.REMINDER_MAXLENGTH}!`);
-                return;
-            }
-
-            // FIXME: see moment error on add.
-            await knex(this.table).insert({
-                user_id: msg.author.id,
-                reminder,
-                reminder_at: dateTime.toISOString(),
-            });
-
-            success(msg, `Your reminder has been added! I'll notify you about it at **${getMoment(dateTime.utc().format('lll'))}**!`);
+            await this.add(ctx, reminderQuery);
             break;
         }
         case 'list': {
-            // TODO: Filter out completed items (or may be just delete on completion)
-            const all = await knex
-                .select()
-                .from<ReminderModel>(this.table)
-                .where('user_id', msg.author.id)
-                .orderBy('created_at', 'desc');
-
-            success(msg, `\`\`\`${JSON.stringify(all, null, 4)}\`\`\``);
+            await this.list(ctx);
             break;
         }
         default:
@@ -240,6 +222,98 @@ export default class Reminder implements BaseCommand {
     }
 
     public async update(_ctx: UpdateContext): Promise<void> {}
+
+    private async add(ctx: ExecContext, reminderQuery: string) {
+        const { msg, knex } = ctx;
+        const reminderData = this.parseReminder(reminderQuery);
+
+        if (!reminderData) {
+            fail(msg, 'Your syntax is incorrect. Check the command help and try again!');
+            return;
+        }
+
+        const { reminder, dateTime } = reminderData;
+        const reminderLength = reminder.length;
+
+        if (reminderLength > Reminder.REMINDER_MAXLENGTH) {
+            fail(
+                msg,
+                `Your reminder is too long. It has ${reminderLength} `
+                + `characters, but should not exceed ${Reminder.REMINDER_MAXLENGTH}!`,
+            );
+            return;
+        }
+
+        await knex(this.table).insert({
+            user_id: msg.author.id,
+            reminder,
+            reminder_at: dateTime.toISOString(),
+        });
+
+        success(
+            msg,
+            'Your reminder has been added! I\'ll notify you about it at '
+            + `**${dateTime.utc().format('lll')} UTC - ${dateTime.fromNow()}**!`,
+        );
+    }
+
+    /**
+     * Returns all reminders, the closest first.
+     */
+    private async getAll(knex: Knex, forId: string): Promise<ReminderModel[]> {
+        return knex
+            .select()
+            .from<ReminderModel>(this.table)
+            .where('user_id', forId)
+            .orderBy('reminder_at', 'asc');
+    }
+
+    private async remove(ctx: ExecContext) {
+        let removeIndex = parseInt(ctx.args[1], 10);
+        const failMsg = 'Invalid reminder number. Check again with the `reminder list` command!';
+
+        if (Number.isNaN(removeIndex)) {
+            fail(ctx.msg, failMsg);
+            return;
+        }
+
+        removeIndex = Math.abs(removeIndex - 1);
+        const reminder = (await this.getAll(ctx.knex, ctx.msg.author.id))[removeIndex];
+
+        if (!reminder) {
+            fail(ctx.msg, failMsg);
+            return;
+        }
+
+        const rowsAffected = await ctx.knex(this.table)
+            .where('id', reminder.id)
+            .del();
+
+        if (!rowsAffected) {
+            fail(ctx.msg, 'Something went wrong.');
+            return;
+        }
+
+        success(ctx.msg);
+    }
+
+    private async list(ctx: ExecContext) {
+        const tzArg = ctx.args[1];
+        let zone: moment.MomentZone | null = null;
+
+        if (tzArg) {
+            zone = moment.tz.zone(tzArg);
+        }
+
+        const all = await this.getAll(ctx.knex, ctx.msg.author.id);
+        const response = all.map((reminder: ReminderModel, index: number) => {
+            const dateTime = moment(reminder.reminder_at);
+            const dateFormatted = zone ? dateTime.tz(tzArg) : dateTime.utc();
+            return `${index + 1}. ${reminder.reminder} (${dateFormatted.format('lll')}, ${dateTime.fromNow()})`;
+        }).reduce((prev: string, current: string) => `${prev}\n${current}`, '');
+
+        ctx.msg.channel.send(`Here are your reminders (all times in ${zone ? zone.name : 'UTC'}):\n${response}`);
+    }
 
     public parseReminder(message: string, from: Date = new Date()): ParseResult | null {
         // time designations begin either with "in", "on"
@@ -259,8 +333,9 @@ export default class Reminder implements BaseCommand {
 
     public help(): string {
         return 'Manage personal reminders:\n'
-            + '* `reminder list` - view your reminders\n'
-            + '* `reminder rm <reminder number>` - remove a reminder (get the number with `list``)\n'
+            + '* `reminder list` - view your reminders. Optionally, provide a timezone argument, like '
+            + '``list EET` or `list Europe/Riga` to convert the times.\n'
+            + '* `reminder rm <reminder number>` - remove a reminder (get the number with `list`)\n'
             + '* `reminder add Some reminder text <time>` - add a new reminder "Some reminder text" for the given time.\n\n'
             + 'Valid input examples for the <time> value are `in 17 minutes`, `in 1 hour`, `in 3 days`, '
             + '`on January 1`, `on March 4th`, `on 9 Feb`, `on 30.11.2020` (MM.DD.YYYY), '

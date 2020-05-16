@@ -19,10 +19,10 @@ export interface SimpleCommand {
 }
 
 export interface Reminder {
+    id: number;
     user_id: string;
     reminder: string;
     reminder_at: string;
-    complete: number;
     created_at: string;
     updated_at: string;
 }
