@@ -5,7 +5,7 @@ import {
     reactFail as fail,
     getNickname,
     getMoment,
-} from '../utils';
+} from '../utils/discord';
 
 export default class FriendlyFire implements BaseCommand {
     private table: string = 'friendlyfire';
