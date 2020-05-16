@@ -7,7 +7,7 @@ import {
     reactFail as fail,
     getMoment,
     getNickname,
-} from '../utils';
+} from '../utils/discord';
 
 
 interface KeyMap {
