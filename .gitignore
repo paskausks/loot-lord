@@ -62,5 +62,6 @@ typings/
 
 # built files
 dist/
+build-info.json
 
 data.sqlite3

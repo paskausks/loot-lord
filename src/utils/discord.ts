@@ -37,10 +37,15 @@ export const getUser = async (
 export const getNickname = async (
     source: Discord.Message, userId: string,
 ): Promise<string> => {
-    const member = await getGuildMember(source, userId);
+    let member;
+    try {
+        member = await getGuildMember(source, userId);
+    } catch (e) {
+        member = null;
+    }
 
     if (!member) {
-        // Has left the server
+        // Has left the server or source is DM
         let user;
         try {
             user = await source.client.fetchUser(userId);

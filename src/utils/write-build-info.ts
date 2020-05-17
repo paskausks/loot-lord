@@ -7,6 +7,18 @@ import os from 'os';
  * Write build info to be usable at runtime.
  */
 
+interface BuildOsInfo {
+    arch: string;
+    platform: string;
+    release: string;
+    type: string;
+}
+
+export interface BuildInfo {
+    timestamp: string;
+    os: BuildOsInfo;
+}
+
 signale.info('Writing build info!');
 
 fs.writeFileSync(
@@ -19,5 +31,5 @@ fs.writeFileSync(
             release: os.release(),
             type: os.type(),
         },
-    }, null, 4),
+    } as BuildInfo, null, 4),
 );
