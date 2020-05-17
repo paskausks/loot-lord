@@ -10,7 +10,7 @@ interface PackageJson {
     version: string;
 }
 
-export default class Help implements BaseCommand {
+export default class About implements BaseCommand {
     public async exec(ctx: ExecContext) {
         let packageInfo: PackageJson = {
             version: 'DEV',
