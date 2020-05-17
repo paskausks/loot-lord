@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+* Added: `!react` command.
+
 ## [v0.2.0]
 
 * Fixed: Fixed where it was possible to create a simple command using a built-in command's name (e.g. `!command add command ...`)
