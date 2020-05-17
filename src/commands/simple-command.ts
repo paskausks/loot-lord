@@ -211,7 +211,7 @@ export default class SimpleCommand implements BaseCommand {
         return { ...command, response: newResponse };
     }
 
-    public async getAll(knex: Knex): Promise<SimpleCommandModel[]> {
+    public async getAll(knex: Knex): Promise<Pick<SimpleCommandModel, 'command'>[]> {
         return knex
             .select('command')
             .from<SimpleCommandModel>('simplecommands');

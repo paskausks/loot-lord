@@ -1,5 +1,5 @@
 import Knex from 'knex';
-import moment from 'moment-timezone';
+import moment from 'moment';
 import BaseCommand, { ExecContext, UpdateContext } from './base';
 import { isValidSequenceNumber } from '../utils/number';
 import {
@@ -177,15 +177,6 @@ export default class Reminder implements BaseCommand {
     private table: string = 'reminders';
     private static REMINDER_MAXLENGTH: number = 250;
 
-    constructor() {
-        // Load timezone data
-        moment.tz.load({
-            version: 'latest',
-            zones: [],
-            links: [],
-        });
-    }
-
     public async exec(ctx: ExecContext) {
         const [subCommand, ...args] = ctx.args;
 
@@ -193,6 +184,7 @@ export default class Reminder implements BaseCommand {
             '`add`',
             '`rm`',
             '`list`',
+            '`help`',
         ].join(', ');
 
         const { msg } = ctx;
@@ -213,6 +205,10 @@ export default class Reminder implements BaseCommand {
         }
         case 'list': {
             await this.list(ctx);
+            break;
+        }
+        case 'help': {
+            msg.channel.send(this.help());
             break;
         }
         default:
@@ -332,13 +328,6 @@ export default class Reminder implements BaseCommand {
     }
 
     private async list(ctx: ExecContext) {
-        const tzArg = ctx.args[1];
-        let zone: moment.MomentZone | null = null;
-
-        if (tzArg) {
-            zone = moment.tz.zone(tzArg);
-        }
-
         const all = await this.getAll(ctx.knex, ctx.msg.author.id);
 
         if (!all.length) {
@@ -348,9 +337,8 @@ export default class Reminder implements BaseCommand {
 
         const fields = all.map((reminder: ReminderModel, index: number) => {
             const dateTime = moment(reminder.reminder_at);
-            const dateFormatted = zone ? dateTime.tz(tzArg) : dateTime.utc();
             return {
-                name: `**${index + 1}** - _${dateFormatted.format('lll')}_`,
+                name: `**${index + 1}** - _${dateTime.utc().format('lll')}_`,
                 value: `${reminder.reminder}`,
             };
         });
@@ -358,7 +346,7 @@ export default class Reminder implements BaseCommand {
         ctx.msg.channel.send({
             embed: {
                 title: 'Your reminders',
-                description: `All times shown in ${zone ? zone.name : 'UTC'}.\n\n`,
+                description: 'All times shown in UTC.\n\n',
                 fields,
             },
         });
@@ -382,8 +370,7 @@ export default class Reminder implements BaseCommand {
 
     public help(): string {
         return 'Manage personal reminders:\n'
-            + '* `reminder list` - view your reminders. Optionally, provide a timezone argument, like '
-            + '``list EET` or `list Europe/Riga` to convert the times.\n'
+            + '* `reminder list` - view your reminders.'
             + '* `reminder rm <reminder number>` - remove a reminder (get the number with `list`)\n'
             + '* `reminder add Some reminder text <time>` - add a new reminder "Some reminder text" for the given time.\n\n'
             + 'Valid input examples for the <time> value are `in 17 minutes`, `in 1 hour`, `in 3 days`, '
