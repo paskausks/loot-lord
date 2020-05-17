@@ -1,5 +1,6 @@
 import Knex from 'knex';
 import Discord from 'discord.js';
+import commandDirectory from '.';
 import BaseCommand, { ExecContext } from './base';
 import { SimpleCommand as SimpleCommandModel } from '../models';
 import {
@@ -8,6 +9,7 @@ import {
     getMoment,
     getNickname,
 } from '../utils/discord';
+import { getPrefix } from '../utils/misc';
 
 
 interface KeyMap {
@@ -36,7 +38,7 @@ export default class SimpleCommand implements BaseCommand {
 
     public async exec(ctx: ExecContext) {
         const [subCommand, ...args] = ctx.args;
-        const validSubCommands = ['`add`', '`rm`', '`info`', '`list`'].join(
+        const validSubCommands = ['`add`', '`rm`', '`info`', '`list`', 'help'].join(
             ', ',
         );
 
@@ -92,6 +94,11 @@ export default class SimpleCommand implements BaseCommand {
 
             if (!command) {
                 fail(msg, 'Provide a command name.');
+                return;
+            }
+
+            if (Object.keys(commandDirectory).some((cmd) => command === cmd)) {
+                fail(msg, 'This name is used by a built-in command.');
                 return;
             }
 
@@ -166,6 +173,10 @@ export default class SimpleCommand implements BaseCommand {
             success(msg);
             return;
         }
+        case 'help': {
+            msg.channel.send(this.help());
+            break;
+        }
         default:
             msg.channel.send(
                 `Invalid subcommand. Try: ${validSubCommands}`,
@@ -176,12 +187,13 @@ export default class SimpleCommand implements BaseCommand {
     public async update() {}
 
     public help(): string {
+        const prefix = getPrefix();
         return (
             'Create and manage custom commands with simple, static responses:\n'
-            + '* `command add <command> <some response text>` - add a new command.\n'
-            + '* `command rm <command>` - remove a command.\n'
-            + '* `command info <command>` - shows some basic information about the command.\n'
-            + '* `command list` - list all saved commands.\n\n'
+            + `* \`${prefix}command add <command> <some response text>\` - add a new command.\n`
+            + `* \`${prefix}command rm <command>\` - remove a command.\n`
+            + `* \`${prefix}command info <command>\` - shows some basic information about the command.\n`
+            + `* \`${prefix}command list\` - list all saved commands.\n\n`
             + `Available template tags for commands: ${Object.keys(keywordKeyMap).map((v) => `\`<${v}>\``).join(',')}`
         );
     }

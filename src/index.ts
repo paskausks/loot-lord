@@ -59,14 +59,16 @@ const main = async (): Promise<void> => {
         const command: string = tokens[0];
         const args: string[] = tokens.slice(1);
         let messageInfo = 'via direct message';
+        const commandInfo = `${command} ${args.join(' ')}`.trim();
 
         if (msg.guild) {
             // Command received from server.
             messageInfo = `on ${msg.guild.name}, #${(msg.channel as Discord.TextChannel).name}.`;
         }
 
+
         logger.info(
-            `Rcvd cmd "${command} ${args.join(' ')}" from ${msg.author.tag} `
+            `Rcvd cmd "${commandInfo}" from ${msg.author.tag} `
             + `${messageInfo}.`,
         );
 

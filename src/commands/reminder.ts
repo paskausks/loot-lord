@@ -7,6 +7,7 @@ import {
     reactFail as fail,
     getUser,
 } from '../utils/discord';
+import { getPrefix } from '../utils/misc';
 import { Reminder as ReminderModel } from '../models';
 
 /*
@@ -369,10 +370,11 @@ export default class Reminder implements BaseCommand {
     }
 
     public help(): string {
+        const prefix = getPrefix();
         return 'Manage personal reminders:\n'
-            + '* `reminder list` - view your reminders.'
-            + '* `reminder rm <reminder number>` - remove a reminder (get the number with `list`)\n'
-            + '* `reminder add Some reminder text <time>` - add a new reminder "Some reminder text" for the given time.\n\n'
+            + `* \`${prefix}reminder list\` - view your reminders.\n`
+            + `* \`${prefix}reminder rm <reminder number>\` - remove a reminder (get the number with \`list\`)\n`
+            + `* \`${prefix}reminder add Some reminder text <time>\` - add a new reminder "Some reminder text" for the given time.\n\n`
             + 'Valid input examples for the <time> value are `in 17 minutes`, `in 1 hour`, `in 3 days`, '
             + '`on January 1`, `on March 4th`, `on 9 Feb`, `on 30.11.2020` (DD.MM.YYYY), '
             + '`on Thursday`, `on Wed`, `on friday`, etc.';

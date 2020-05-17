@@ -1,6 +1,6 @@
-import { env } from 'process';
 import BaseCommand, { ExecContext } from './base';
 import commands from '.';
+import { getPrefix } from '../utils/misc';
 
 export default class Help implements BaseCommand {
     public async exec(ctx: ExecContext) {
@@ -23,7 +23,7 @@ export default class Help implements BaseCommand {
     public async update(): Promise<void> {}
 
     public help(): string {
-        const prefix: string | undefined = env.DISCORD_BOT_PREFIX;
+        const prefix = getPrefix();
         const availableCommands = Object.keys(commands)
             .filter((cmd: string) => cmd !== 'help')
             .map((cmd: string) => `\n* \`${prefix}${cmd}\``)
