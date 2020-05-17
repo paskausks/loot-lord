@@ -35,7 +35,7 @@ const main = async (): Promise<void> => {
         logger.success(`Logged in as ${client.user.tag}!`);
     });
 
-    // Hook update command to be called once a minute.
+    // Hook update command to be called once every 30 sec.
     const commandInstances = Object.values(commands);
     const updateContext = {
         knex: cnx,
@@ -45,7 +45,7 @@ const main = async (): Promise<void> => {
         Promise.all(commandInstances.map((c) => c.update(updateContext))).then(() => {
             logger.debug('Update cycle done.');
         });
-    }, 60 * 1000);
+    }, 30 * 1000);
 
     const newMessage = (fromEvent(client, 'message') as Observable<Discord.Message>).pipe(
         // TODO: Remove check if it starts with prefix to allow for
@@ -58,11 +58,16 @@ const main = async (): Promise<void> => {
         const tokens: string[] = msg.content.slice(prefix.length).split(' ');
         const command: string = tokens[0];
         const args: string[] = tokens.slice(1);
+        let messageInfo = 'via direct message';
+
+        if (msg.guild) {
+            // Command received from server.
+            messageInfo = `on ${msg.guild.name}, #${(msg.channel as Discord.TextChannel).name}.`;
+        }
 
         logger.info(
-            `Rcvd cmd "${command}" from ${msg.author.tag}`
-            + ` on "${msg.guild.name}", #${(msg.channel as Discord.TextChannel).name}.`
-            + ` Args: ${JSON.stringify(args)}`,
+            `Rcvd cmd "${command} ${args.join(' ')}" from ${msg.author.tag} `
+            + `${messageInfo}.`,
         );
 
         const commandExecutor = commands[command];
