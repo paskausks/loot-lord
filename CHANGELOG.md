@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+* Fixed: If a single argument is passed to the `!roll` command and it's not a number, an error message is returned.
 * Added: `!react` command.
 * Added: Reversed syntax ("<when> <what>", e.g. `!reminder add on friday beers with the boys`) for reminders and also a "DD.MM" format.
 
