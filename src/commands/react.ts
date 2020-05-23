@@ -84,7 +84,8 @@ export default class React implements BaseCommand {
             return;
         }
 
-        Array.from(word).forEach((char) => {
+        // Using set since there's no point having duplicate characters
+        new Set(word).forEach((char) => {
             const emoji = emojiAlphabet[char.toLowerCase()];
 
             if (!emoji) {
