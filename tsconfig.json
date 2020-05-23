@@ -5,6 +5,7 @@
     "sourceMap": false,
     "outDir": "./dist",
     "strict": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
     "lib": ["dom", "es6"]
   },
