@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 * Added: `!react` command.
+* Added "DD.MM" format to reminders.
 
 ## [v0.2.0]
 

@@ -114,11 +114,11 @@ const parsers: ReminderMessageParser[] = [
 
     /*
      * Messages with the format "on DD.MM.YYYY"
-     * e.g. "12.03.2020", "12.4.2020", "1.03.20"
-     * etc.
+     * and "DD.MM" e.g. "12.03.2020", "12.4.2020", "1.03.20",
+     * "14.02", "1.2" etc.
      */
     (message, sourceDate) => {
-        const result = /([\s\S]+)on (\d{1,2}\.\d{1,2}\.(:?\d{2}|\d{4}))$/.exec(message);
+        const result = /([\s\S]+)on (\d{1,2}\.\d{1,2}(:?\.\d{2}|\.\d{4})?)\.?$$/.exec(message);
 
         if (!result) {
             return null;
@@ -128,6 +128,7 @@ const parsers: ReminderMessageParser[] = [
         const newDate = moment(result[2], [
             'D.M.YYYY',
             'D.M.YY',
+            'D.M',
         ], true);
 
         if (!newDate.isValid() || newDate.isBefore(sourceDate)) {

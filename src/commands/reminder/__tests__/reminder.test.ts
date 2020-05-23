@@ -25,9 +25,16 @@ describe('reminder', () => {
             ['go to a foreign country on 9 Feb', 'go to a foreign country', new Date(2020, 1, 9, 0, 0, 0, 0)],
             ['celebrate birthday on 15th of September', 'celebrate birthday', new Date(2020, 8, 15, 0, 0, 0, 0)],
 
+            // DD.MM.YYYY
             ['write a letter to a colleague on 30.11.2020', 'write a letter to a colleague', new Date(2020, 10, 30, 0, 0, 0, 0)],
             ['update software on 07.01.2021', 'update software', new Date(2021, 0, 7, 0, 0, 0, 0)],
             ['go to the market on 3.2.2022', 'go to the market', new Date(2022, 1, 3, 0, 0, 0, 0)],
+
+            // DD.MM
+            ['go to the market on 3.2', 'go to the market', new Date(2020, 1, 3, 0, 0, 0, 0)],
+            ['go to the market on 03.02', 'go to the market', new Date(2020, 1, 3, 0, 0, 0, 0)],
+            ['go to the market on 03.2', 'go to the market', new Date(2020, 1, 3, 0, 0, 0, 0)],
+            ['go to the market on 3.02', 'go to the market', new Date(2020, 1, 3, 0, 0, 0, 0)],
 
             // Test multi line and markdown parsing
             ['add a `test` *with* **markdown**\n```js\nconsole.log("Hello world!")\n```\nin 17 minutes', 'add a `test` *with* **markdown**\n```js\nconsole.log("Hello world!")\n```', new Date(2020, 0, 1, 13, 45, 14, 321)],
