@@ -17,6 +17,31 @@ export type ReminderMessageParser = (
     sourceDate: moment.Moment
 ) => ParseResult | null;
 
+/**
+ * Performs a RegExp exec on a message,
+ * utilizing the provided regexp pattern for
+ * time.
+ *
+ * By default this pattern is "<message> <time descriptor>",
+ * but it can also be reversed.
+ */
+export function execReminderMessage(
+    message: string,
+    timePattern: string,
+    reversed: boolean = false,
+): RegExpExecArray | null {
+    const REMINDER_MESSAGE_PATTERN = '([\\s\\S]+)';
+    let regexp: RegExp;
+
+    if (reversed) {
+        regexp = new RegExp(`^${timePattern}\\s${REMINDER_MESSAGE_PATTERN}$`);
+    } else {
+        regexp = new RegExp(`^${REMINDER_MESSAGE_PATTERN}\\s${timePattern}$`);
+    }
+
+    return regexp.exec(message);
+}
+
 /*
  * Message parsers add support for various
  * message formats through which reminders
@@ -28,22 +53,39 @@ const parsers: ReminderMessageParser[] = [
      * e.g. "in 3 hours", "in 5 days", etc.
      */
     (message, sourceDate) => {
-        const result = /([\s\S]+)in (\d+\.?\d*) ([a-zA-Z]+)$/.exec(message);
+        const time = 'in (\\d+\\.?\\d*) ([a-zA-Z]+)';
+        let result = execReminderMessage(message, time);
+        let rawReminder: string;
+        let rawAmount: string;
+        let rawType: string;
         const targetTime = sourceDate.clone();
 
-        if (!result) {
-            return null;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        let full: string;
+
+        if (result) {
+            [full, rawReminder, rawAmount, rawType] = result;
+        } else {
+            // Try reversed
+            result = execReminderMessage(message, time, true);
+
+            if (!result) {
+                return null;
+            }
+
+            [full, rawAmount, rawType, rawReminder] = result;
         }
 
-        const reminder = result[1].trim();
-        const amount = parseFloat(result[2]);
-        const type = result[3];
+        const reminder = rawReminder.trim();
+        const amount = parseFloat(rawAmount);
+        const unit = rawType;
+
 
         if (Number.isNaN(amount)) {
             throw new Error('Not a valid time amount!');
         }
 
-        targetTime.add(amount, type as moment.DurationInputArg2);
+        targetTime.add(amount, unit as moment.DurationInputArg2);
         if (sourceDate.isSame(targetTime)) {
             // "add" operation failed, time was unmodified.
             return null;
@@ -61,31 +103,53 @@ const parsers: ReminderMessageParser[] = [
      * "on 3rd April", "on 14th of Nov" etc.
      */
     (message, sourceDate) => {
-        let result = /([\s\S]+)on ([a-zA-Z]{2,}) (\d+)(st|nd|rd|th)?$/.exec(message);
-        let month: string;
-        let date: number;
-        let suffix: string | undefined;
+        const timeDefault = 'on ([a-zA-Z]{2,}) (\\d+)(st|nd|rd|th)?';
+        const timeAlt = 'on (\\d+)(st|nd|rd|th)? (?:of )?([a-zA-Z]{3,})';
+        let result = execReminderMessage(message, timeDefault);
+        let rawReminder = '';
+        let rawMonth = '';
+        let rawDate = '';
+        let rawSuffix = '';
+        let regularMatch = false;
 
-        /* eslint-disable prefer-destructuring */
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        let full: string;
+
         if (result) {
-            month = result[2];
-            date = parseInt(result[3], 10);
-            suffix = result[4];
+            [full, rawReminder, rawMonth, rawDate, rawSuffix] = result;
+            regularMatch = true;
         } else {
-            // Try reversed
-            result = /([\s\S]+)on (\d+)(st|nd|rd|th)? (?:of )?([a-zA-Z]{3,})/.exec(message);
+            // Try alternative date format
+            result = execReminderMessage(message, timeAlt);
 
-            if (!result) {
-                return null;
+            if (result) {
+                regularMatch = true;
+                [full, rawReminder, rawDate, rawSuffix, rawMonth] = result;
             }
-
-            date = parseInt(result[2], 10);
-            suffix = result[3];
-            month = result[4];
         }
-        /* eslint-enable prefer-destructuring */
 
-        const reminder = result[1].trim();
+        if (!regularMatch) {
+            // try time in front
+            result = execReminderMessage(message, timeDefault, true);
+
+            if (result) {
+                [full, rawMonth, rawDate, rawSuffix, rawReminder] = result;
+            } else {
+                // try time in front with alternative date format
+                result = execReminderMessage(message, timeAlt, true);
+
+                if (!result) {
+                    return null;
+                }
+
+                [full, rawDate, rawSuffix, rawMonth, rawReminder] = result;
+            }
+        }
+
+        const reminder = rawReminder.trim();
+        const month = rawMonth;
+        const date = parseInt(rawDate, 10);
+        const suffix = rawSuffix;
 
         if (Number.isNaN(date)) {
             return null;
@@ -118,14 +182,29 @@ const parsers: ReminderMessageParser[] = [
      * "14.02", "1.2" etc.
      */
     (message, sourceDate) => {
-        const result = /([\s\S]+)on (\d{1,2}\.\d{1,2}(:?\.\d{2}|\.\d{4})?)\.?$$/.exec(message);
+        const time = 'on (\\d{1,2}\\.\\d{1,2}(?:\\.\\d{4})?)\\.?';
+        let result = execReminderMessage(message, time);
+        let rawReminder: string;
+        let rawDate: string;
 
-        if (!result) {
-            return null;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        let full: string;
+
+        if (result) {
+            [full, rawReminder, rawDate] = result;
+        } else {
+            // Try reversed
+            result = execReminderMessage(message, time, true);
+
+            if (!result) {
+                return null;
+            }
+
+            [full, rawDate, rawReminder] = result;
         }
 
-        const reminder = result[1].trim();
-        const newDate = moment(result[2], [
+        const reminder = rawReminder.trim();
+        const newDate = moment(rawDate, [
             'D.M.YYYY',
             'D.M.YY',
             'D.M',
@@ -147,14 +226,29 @@ const parsers: ReminderMessageParser[] = [
      * etc.
      */
     (message) => {
-        const result = /([\s\S]+)on ([a-zA-Z]{3,9})$/.exec(message);
+        const time = 'on ([a-zA-Z]{3,9})';
+        let result = execReminderMessage(message, time);
+        let rawReminder: string;
+        let rawDay: string;
 
-        if (!result) {
-            return null;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        let full: string;
+
+        if (result) {
+            [full, rawReminder, rawDay] = result;
+        } else {
+            // try reverse
+            result = execReminderMessage(message, time, true);
+
+            if (!result) {
+                return null;
+            }
+
+            [full, rawDay, rawReminder] = result;
         }
 
-        const reminder = result[1].trim();
-        const newDate = moment(result[2], [
+        const reminder = rawReminder.trim();
+        const newDate = moment(rawDay, [
             'ddd', // Mon, Tue, Wed, etc.
             'dddd', // Monday, Tuesday, etc.
         ], true);

@@ -214,9 +214,10 @@ export default class Reminder implements BaseCommand {
         return 'Manage personal reminders:\n'
             + `* \`${prefix}reminder list\` - view your reminders.\n`
             + `* \`${prefix}reminder rm <reminder number>\` - remove a reminder (get the number with \`list\`)\n`
-            + `* \`${prefix}reminder add Some reminder text <time>\` - add a new reminder "Some reminder text" for the given time.\n\n`
+            + `* \`${prefix}reminder add Some reminder text <time>\` - add a new reminder "Some reminder text" for `
+            + `the given time. The reverse also works - you can do \`${prefix}reminder add <time> Some reminder text\`.\n\n`
             + 'Valid input examples for the <time> value are `in 17 minutes`, `in 1 hour`, `in 3 days`, '
-            + '`on January 1`, `on March 4th`, `on 9 Feb`, `on 30.11.2020` (DD.MM.YYYY), '
+            + '`on January 1`, `on March 4th`, `on 9 Feb`, `on 30.11.2020` (DD.MM.YYYY), `on 14.02 (DD.MM)` '
             + '`on Thursday`, `on Wed`, `on friday`, etc.';
     }
 }

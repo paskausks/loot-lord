@@ -45,7 +45,10 @@ module.exports = {
         // See https://stackoverflow.com/a/56848207/3775078
         // Ignore unused vars prefixed with an underscore.
         'no-unused-vars': 'off',
-        '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
+        '@typescript-eslint/no-unused-vars': ['error', {
+            'argsIgnorePattern': '^_',
+            'varsIgnorePattern': '^_'
+        }],
         'no-empty-function': 'off',
 
         // Weird stuff with missing and required semicolons

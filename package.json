@@ -4,6 +4,7 @@
   "description": "Yet another Discord bot",
   "main": "dist/index.js",
   "private": true,
+"repository": "github:paskausks/loot-lord",
   "devDependencies": {
     "@types/jest": "^25.2.3",
     "@types/node": "^13.13.9",

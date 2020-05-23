@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 * Added: `!react` command.
-* Added "DD.MM" format to reminders.
+* Added: Reversed syntax ("<when> <what>", e.g. `!reminder add on friday beers with the boys`) for reminders and also a "DD.MM" format.
 
 ## [v0.2.0]
 
