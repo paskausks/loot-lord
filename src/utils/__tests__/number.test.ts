@@ -1,4 +1,4 @@
-import { isValidSequenceNumber } from '../../src/utils/number';
+import { isValidSequenceNumber } from '../number';
 
 describe('number utils', () => {
     describe('isValidSequenceNumber', () => {

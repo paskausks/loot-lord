@@ -1,5 +1,5 @@
 import moment from 'moment';
-import Reminder from '../../src/commands/reminder';
+import Reminder from '../reminder';
 
 describe('reminder', () => {
     // Set a constant time for testing the parser

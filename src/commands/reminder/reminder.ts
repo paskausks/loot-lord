@@ -1,179 +1,19 @@
 import Knex from 'knex';
 import moment from 'moment';
-import BaseCommand, { ExecContext, UpdateContext } from './base';
-import { isValidSequenceNumber } from '../utils/number';
+import BaseCommand, { ExecContext, UpdateContext } from '../base';
 import {
     reactSuccess as success,
     reactFail as fail,
     getUser,
-} from '../utils/discord';
-import { getPrefix } from '../utils/misc';
-import { Reminder as ReminderModel } from '../models';
+} from '../../utils/discord';
+import { getPrefix } from '../../utils/misc';
+import { Reminder as ReminderModel } from '../../models';
+import messageParsers, { ParseResult } from './parsers';
 
 /*
  * Reminders inspired by Slack.
  * https://slack.com/intl/en-lv/help/articles/208423427-Set-a-reminder
  */
-
-interface ParseResult {
-    dateTime: moment.Moment;
-    reminder: string;
-}
-
-type ReminderMessageParser = (message: string, sourceDate: moment.Moment) => ParseResult | null;
-
-/*
- * Message parsers add support for various
- * message formats through which reminders
- * can be created.
- */
-const messageParsers: ReminderMessageParser[] = [
-    /*
-     * Messages starting with "in"
-     * e.g. "in 3 hours", "in 5 days", etc.
-     */
-    (message, sourceDate) => {
-        const result = /([\s\S]+)in (\d+\.?\d*) ([a-zA-Z]+)$/.exec(message);
-        const targetTime = sourceDate.clone();
-
-        if (!result) {
-            return null;
-        }
-
-        const reminder = result[1].trim();
-        const amount = parseFloat(result[2]);
-        const type = result[3];
-
-        if (Number.isNaN(amount)) {
-            throw new Error('Not a valid time amount!');
-        }
-
-        targetTime.add(amount, type as moment.DurationInputArg2);
-        if (sourceDate.isSame(targetTime)) {
-            // "add" operation failed, time was unmodified.
-            return null;
-        }
-
-        return {
-            dateTime: targetTime,
-            reminder,
-        };
-    },
-
-    /*
-     * Messages with the format "on <month> <date>" and "on <date> <month>"
-     * e.g. "on January 1", "on March 4th", "on Jun 22", "on 1 January",
-     * "on 3rd April", "on 14th of Nov" etc.
-     */
-    (message, sourceDate) => {
-        let result = /([\s\S]+)on ([a-zA-Z]{2,}) (\d+)(st|nd|rd|th)?$/.exec(message);
-        let month: string;
-        let date: number;
-        let suffix: string | undefined;
-
-        /* eslint-disable prefer-destructuring */
-        if (result) {
-            month = result[2];
-            date = parseInt(result[3], 10);
-            suffix = result[4];
-        } else {
-            // Try reversed
-            result = /([\s\S]+)on (\d+)(st|nd|rd|th)? (?:of )?([a-zA-Z]{3,})/.exec(message);
-
-            if (!result) {
-                return null;
-            }
-
-            date = parseInt(result[2], 10);
-            suffix = result[3];
-            month = result[4];
-        }
-        /* eslint-enable prefer-destructuring */
-
-        const reminder = result[1].trim();
-
-        if (Number.isNaN(date)) {
-            return null;
-        }
-
-        if (suffix && !isValidSequenceNumber(date + suffix)) {
-            return null;
-        }
-
-        const newDate = moment(date.toString() + month, [
-            'DMMM', // 1Mar
-            'DMMMM', // 1March
-            'DDMMM', // 01Mar
-            'DDMMMM', // 01March
-        ], true);
-
-        if (!newDate.isValid()) {
-            return null;
-        }
-
-        return {
-            dateTime: newDate.isBefore(sourceDate) ? newDate.add(1, 'y') : newDate,
-            reminder,
-        };
-    },
-
-    /*
-     * Messages with the format "on DD.MM.YYYY"
-     * e.g. "12.03.2020", "12.4.2020", "1.03.20"
-     * etc.
-     */
-    (message, sourceDate) => {
-        const result = /([\s\S]+)on (\d{1,2}\.\d{1,2}\.(:?\d{2}|\d{4}))$/.exec(message);
-
-        if (!result) {
-            return null;
-        }
-
-        const reminder = result[1].trim();
-        const newDate = moment(result[2], [
-            'D.M.YYYY',
-            'D.M.YY',
-        ], true);
-
-        if (!newDate.isValid() || newDate.isBefore(sourceDate)) {
-            return null;
-        }
-
-        return {
-            dateTime: newDate,
-            reminder,
-        };
-    },
-
-    /*
-     * Messages with the format "on <day>"
-     * e.g. "Mon", "Tue", "Thursday", etc.
-     * etc.
-     */
-    (message) => {
-        const result = /([\s\S]+)on ([a-zA-Z]{3,9})$/.exec(message);
-
-        if (!result) {
-            return null;
-        }
-
-        const reminder = result[1].trim();
-        const newDate = moment(result[2], [
-            'ddd', // Mon, Tue, Wed, etc.
-            'dddd', // Monday, Tuesday, etc.
-        ], true);
-
-        if (!newDate.isValid()) {
-            return null;
-        }
-
-        return {
-            dateTime: newDate.isBefore(new Date()) ? newDate.add(1, 'week') : newDate,
-            reminder,
-        };
-    },
-];
-
 export default class Reminder implements BaseCommand {
     private table: string = 'reminders';
     private static REMINDER_MAXLENGTH: number = 250;
