@@ -3,7 +3,7 @@ A discord bot of sorts.
 
 ## Requirements
 
-* Node.js 10+
+* Node.js 12+
 
 ## Setup
 
@@ -25,12 +25,18 @@ Invite the bot into a server of your choosing:
 
 [https://discordapp.com/api/oauth2/authorize?client_id=CLIENTIDHERE&scope=bot&permissions=519232](https://discordapp.com/api/oauth2/authorize?client_id=CLIENTIDHERE&scope=bot&permissions=519232)
 
-## Running
+Build the bot and start it:
+
+```
+npm run build && npm start
+```
+
+## Commands
 
 Run tests
 
 ```
-npm run test
+npm test
 ```
 
 Build sources
@@ -42,7 +48,7 @@ npm run build
 Run the built files.
 
 ```
-npm run start
+npm start
 ```
 
 Build sources and watch for changes
