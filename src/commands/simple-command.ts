@@ -34,6 +34,7 @@ const keywordKeyMap: KeyMap = {
 };
 
 export default class SimpleCommand implements BaseCommand {
+    public readonly trigger: string = 'command';
     private table: string = 'simplecommands';
 
     public async exec(ctx: ExecContext) {

@@ -15,6 +15,7 @@ import messageParsers, { ParseResult } from './parsers';
  * https://slack.com/intl/en-lv/help/articles/208423427-Set-a-reminder
  */
 export default class Reminder implements BaseCommand {
+    public readonly trigger: string = 'reminder';
     private table: string = 'reminders';
     private static REMINDER_MAXLENGTH: number = 250;
 

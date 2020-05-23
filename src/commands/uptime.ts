@@ -3,6 +3,7 @@ import os from 'os';
 import BaseCommand, { ExecContext } from './base';
 
 export default class Uptime implements BaseCommand {
+    public readonly trigger: string = 'uptime';
     private dateTime: moment.Moment = moment();
     public async exec(ctx: ExecContext) {
         const uptime = moment.duration(moment().diff(this.dateTime)).humanize();

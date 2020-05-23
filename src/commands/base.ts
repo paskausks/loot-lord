@@ -13,6 +13,7 @@ export interface UpdateContext {
 }
 
 export default interface BaseCommand {
+    trigger: string;
     exec(ctx: ExecContext): Promise<void>;
     update(ctx: UpdateContext): Promise<void>;
     help(): string;

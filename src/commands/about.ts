@@ -11,6 +11,7 @@ interface PackageJson {
 }
 
 export default class About implements BaseCommand {
+    public readonly trigger: string = 'about';
     public async exec(ctx: ExecContext) {
         let packageInfo: PackageJson = {
             version: 'DEV',

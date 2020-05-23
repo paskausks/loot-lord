@@ -36,13 +36,13 @@ const main = async (): Promise<void> => {
     });
 
     // Hook update command to be called once every 30 sec.
-    const commandInstances = Object.values(commands);
+    const commandInstances = commands.values();
     const updateContext = {
         knex: cnx,
         discord: client,
     };
     setInterval(() => {
-        Promise.all(commandInstances.map((c) => c.update(updateContext))).then(() => {
+        Promise.all(Array.from(commandInstances).map((c) => c.update(updateContext))).then(() => {
             logger.debug('Update cycle done.');
         });
     }, 30 * 1000);
@@ -72,7 +72,7 @@ const main = async (): Promise<void> => {
             + `${messageInfo}.`,
         );
 
-        const commandExecutor = commands[command];
+        const commandExecutor = commands.get(command);
 
         // Built in command found.
         if (commandExecutor) {
@@ -85,7 +85,7 @@ const main = async (): Promise<void> => {
         }
 
         // Try simple commands
-        const simpleCommandDirectory = (commands.command as SimpleCommand);
+        const simpleCommandDirectory = (commands.get('command') as SimpleCommand);
         const simpleCommand = await simpleCommandDirectory.getCommand(cnx, command, ['command', 'response']);
 
         if (!simpleCommand) {

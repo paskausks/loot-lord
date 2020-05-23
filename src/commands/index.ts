@@ -7,16 +7,19 @@ import Uptime from './uptime';
 import Roll from './roll';
 import React from './react';
 
-export interface CommandMap {
-    [key: string]: BaseCommand;
-}
+export type CommandMap = Map<string, BaseCommand>;
+const commandMap: CommandMap = new Map();
 
-export default {
-    command: new SimpleCommand(),
-    reminder: new Reminder(),
-    help: new Help(),
-    about: new About(),
-    uptime: new Uptime(),
-    roll: new Roll(),
-    react: new React(),
-} as CommandMap;
+[
+    Help,
+    About,
+    Uptime,
+    SimpleCommand,
+    Reminder,
+    Roll,
+    React,
+].map((CommandClass) => new CommandClass()).forEach((commandInstance) => {
+    commandMap.set(commandInstance.trigger.toLowerCase(), commandInstance);
+});
+
+export default commandMap;

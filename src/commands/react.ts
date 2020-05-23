@@ -55,6 +55,8 @@ export default class React implements BaseCommand {
     // so we limit the amount of characters
     private MAXLENGTH: number = 10;
 
+    public readonly trigger: string = 'react';
+
     public async exec(ctx: ExecContext) {
         const { msg, args } = ctx;
 

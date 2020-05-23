@@ -8,6 +8,7 @@ import {
 } from '../utils/discord';
 
 export default class FriendlyFire implements BaseCommand {
+    public readonly trigger: string = 'friendly';
     private table: string = 'friendlyfire';
 
     public async exec(ctx: ExecContext) {

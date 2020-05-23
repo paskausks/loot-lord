@@ -12,6 +12,7 @@ type RandomFunc = () => number;
  * Various RNG commands.
  */
 export default class Roll implements BaseCommand {
+    public readonly trigger: string = 'roll';
     public async exec(ctx: ExecContext) {
         const { msg, args } = ctx;
         const [firstArg, secondArg] = args;
