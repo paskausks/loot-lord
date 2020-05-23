@@ -2,9 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import signale from 'signale';
 import moment from 'moment';
+import { Message } from 'discord.js';
 import { getNickname } from '../utils/discord';
 import BaseCommand, { ExecContext } from './base';
 import { BuildInfo } from '../utils/write-build-info';
+import { buildHelp } from '../utils/help';
 
 interface PackageJson {
     version: string;
@@ -52,7 +54,10 @@ export default class About implements BaseCommand {
 
     public async update(): Promise<void> {}
 
-    public help(): string {
-        return 'Displays some info about the bot and it\'s authors.';
+    public async sendHelp(msg: Message): Promise<void> {
+        msg.channel.send(buildHelp({
+            title: this.trigger,
+            description: 'Displays some info about the bot and it\'s authors.',
+        }));
     }
 }

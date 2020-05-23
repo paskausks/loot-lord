@@ -1,8 +1,10 @@
+import { Message } from 'discord.js';
 import BaseCommand, { ExecContext } from './base';
 import {
     reactFail as fail,
 } from '../utils/discord';
-import { getPrefix } from '../utils/misc';
+import { getPrefix } from '../utils/bot';
+import { buildHelp } from '../utils/help';
 
 interface EmojiAlphabet {
     [key: string]: string;
@@ -61,7 +63,7 @@ export default class React implements BaseCommand {
         const { msg, args } = ctx;
 
         if (!args.length) {
-            msg.channel.send(this.help());
+            this.sendHelp(msg);
             return;
         }
 
@@ -98,7 +100,14 @@ export default class React implements BaseCommand {
 
     public async update(): Promise<void> {}
 
-    public help(): string {
-        return `React to the last message (excluding bot command messages) with text. Limited to ${this.MAXLENGTH} characters.`;
+    public async sendHelp(msg: Message): Promise<void> {
+        msg.channel.send(buildHelp({
+            title: this.trigger,
+            description: 'Writing a word with reactions, wow, so amaze!',
+            commands: [{
+                command: 'react <word>',
+                explanation: `React to the last message (non-bot and non-command) with a word. Limited to ${this.MAXLENGTH} characters.`,
+            }],
+        }));
     }
 }

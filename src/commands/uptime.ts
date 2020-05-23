@@ -1,6 +1,7 @@
+import { Message } from 'discord.js';
 import moment from 'moment';
-import os from 'os';
 import BaseCommand, { ExecContext } from './base';
+import { buildHelp } from '../utils/help';
 
 export default class Uptime implements BaseCommand {
     public readonly trigger: string = 'uptime';
@@ -8,13 +9,16 @@ export default class Uptime implements BaseCommand {
     public async exec(ctx: ExecContext) {
         const uptime = moment.duration(moment().diff(this.dateTime)).humanize();
         ctx.msg.channel.send(
-            `The bot has been running for ${uptime} on ${os.type} ${os.arch}.`,
+            `The bot has been running for ${uptime} (since ${this.dateTime.utc().format('llll')}).`,
         );
     }
 
     public async update(): Promise<void> {}
 
-    public help(): string {
-        return 'Shows how long the bot has been running uninterrupted.';
+    public async sendHelp(msg: Message): Promise<void> {
+        msg.channel.send(buildHelp({
+            title: this.trigger,
+            description: 'Shows how long the bot has been running uninterrupted.',
+        }));
     }
 }

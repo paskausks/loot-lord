@@ -1,6 +1,8 @@
+import { Message } from 'discord.js';
 import BaseCommand, { ExecContext } from './base';
-import { getPrefix } from '../utils/misc';
+import { getPrefix } from '../utils/bot';
 import { reactFail } from '../utils/discord';
+import { buildHelp } from '../utils/help';
 
 /**
  * A function that returns a random floating point
@@ -20,7 +22,7 @@ export default class Roll implements BaseCommand {
         const secondArgInt = parseInt(secondArg, 10);
 
         if (firstArg === 'help') {
-            msg.channel.send(this.help());
+            this.sendHelp(msg);
             return;
         }
 
@@ -89,14 +91,34 @@ export default class Roll implements BaseCommand {
 
     public async update(): Promise<void> {}
 
-    public help(): string {
+    public async sendHelp(msg: Message): Promise<void> {
         const prefix = getPrefix();
-        return 'Virtual dice:\n'
-            + `* \`${prefix}roll\` - get a number between 0 and 100.\n`
-            + `* \`${prefix}roll <to>\` - get a number from 0 to the provided number.\n`
-            + `* \`${prefix}roll d<to>\` - get a number from 1 to the provided number, `
-            + `e.g. \`${prefix}roll d20\` to get a number between 1 and 20.\n`
-            + `* \`${prefix}roll <from> <to>\` - get a number in a provided range. Upper bound exclusive\n`
-            + `* \`${prefix}roll <option> <option> <option> ...\` - pick one of given options.`;
+        msg.channel.send(buildHelp({
+            title: this.trigger,
+            description: 'Virtual dice.',
+            commands: [
+                {
+                    command: this.trigger,
+                    explanation: 'Get a number between 0 and 100.',
+                },
+                {
+                    command: `${this.trigger} <to>`,
+                    explanation: 'Get a number from 0 to the provided number.',
+                },
+                {
+                    command: `${this.trigger} d<to>`,
+                    explanation: 'Get a number from 1 to the provided number. '
+                    + `e.g. \`${prefix}${this.trigger} d20\` to get a number between 1 and 20.`,
+                },
+                {
+                    command: `${this.trigger} <from> <to>`,
+                    explanation: 'Get a number in a provided range. Upper bound exclusive.',
+                },
+                {
+                    command: `${this.trigger} <option> <option> <option> ...`,
+                    explanation: 'Pick one of given options.',
+                },
+            ],
+        }));
     }
 }

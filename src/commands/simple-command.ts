@@ -9,7 +9,7 @@ import {
     getMoment,
     getNickname,
 } from '../utils/discord';
-import { getPrefix } from '../utils/misc';
+import { buildHelp } from '../utils/help';
 
 
 interface KeyMap {
@@ -46,7 +46,7 @@ export default class SimpleCommand implements BaseCommand {
         const { msg, knex } = ctx;
 
         if (!ctx.args.length) {
-            msg.channel.send(this.help());
+            this.sendHelp(msg);
             return;
         }
 
@@ -175,7 +175,7 @@ export default class SimpleCommand implements BaseCommand {
             return;
         }
         case 'help': {
-            msg.channel.send(this.help());
+            this.sendHelp(msg);
             break;
         }
         default:
@@ -187,16 +187,32 @@ export default class SimpleCommand implements BaseCommand {
 
     public async update() {}
 
-    public help(): string {
-        const prefix = getPrefix();
-        return (
-            'Create and manage custom commands with simple, static responses:\n'
-            + `* \`${prefix}command add <command> <some response text>\` - add a new command.\n`
-            + `* \`${prefix}command rm <command>\` - remove a command.\n`
-            + `* \`${prefix}command info <command>\` - shows some basic information about the command.\n`
-            + `* \`${prefix}command list\` - list all saved commands.\n\n`
-            + `Available template tags for commands: ${Object.keys(keywordKeyMap).map((v) => `\`<${v}>\``).join(',')}`
-        );
+    public async sendHelp(msg: Discord.Message): Promise<void> {
+        msg.channel.send(buildHelp({
+            title: this.trigger,
+            description: 'Create and manage custom commands with simple responses.',
+            commands: [
+                {
+                    command: `${this.trigger} add <command> <some response text>`,
+                    explanation: 'Add a new command. '
+                    + 'Available template tags for responses: '
+                    + `${Object.keys(keywordKeyMap).map((v) => `\`<${v}>\``).join(',')}`
+                    + '.',
+                },
+                {
+                    command: `${this.trigger} rm <command>`,
+                    explanation: 'Remove a command.',
+                },
+                {
+                    command: `${this.trigger} info <command>`,
+                    explanation: 'Shows some basic information about the command.',
+                },
+                {
+                    command: `${this.trigger} list`,
+                    explanation: 'List all saved commands.',
+                },
+            ],
+        }));
     }
 
     public async getCommand(

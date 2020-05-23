@@ -1,12 +1,14 @@
 import Knex from 'knex';
 import moment from 'moment';
+import { Message } from 'discord.js';
 import BaseCommand, { ExecContext, UpdateContext } from '../base';
 import {
     reactSuccess as success,
     reactFail as fail,
     getUser,
 } from '../../utils/discord';
-import { getPrefix } from '../../utils/misc';
+import { getPrefix } from '../../utils/bot';
+import { buildHelp } from '../../utils/help';
 import { Reminder as ReminderModel } from '../../models';
 import messageParsers, { ParseResult } from './parsers';
 
@@ -32,7 +34,7 @@ export default class Reminder implements BaseCommand {
         const { msg } = ctx;
 
         if (!ctx.args.length) {
-            msg.channel.send(this.help());
+            this.sendHelp(msg);
             return;
         }
 
@@ -50,7 +52,7 @@ export default class Reminder implements BaseCommand {
             break;
         }
         case 'help': {
-            msg.channel.send(this.help());
+            this.sendHelp(msg);
             break;
         }
         default:
@@ -210,15 +212,34 @@ export default class Reminder implements BaseCommand {
         return null;
     }
 
-    public help(): string {
+    public async sendHelp(msg: Message): Promise<void> {
         const prefix = getPrefix();
-        return 'Manage personal reminders:\n'
-            + `* \`${prefix}reminder list\` - view your reminders.\n`
-            + `* \`${prefix}reminder rm <reminder number>\` - remove a reminder (get the number with \`list\`)\n`
-            + `* \`${prefix}reminder add Some reminder text <time>\` - add a new reminder "Some reminder text" for `
-            + `the given time. The reverse also works - you can do \`${prefix}reminder add <time> Some reminder text\`.\n\n`
-            + 'Valid input examples for the <time> value are `in 17 minutes`, `in 1 hour`, `in 3 days`, '
-            + '`on January 1`, `on March 4th`, `on 9 Feb`, `on 30.11.2020` (DD.MM.YYYY), `on 14.02 (DD.MM)` '
-            + '`on Thursday`, `on Wed`, `on friday`, etc.';
+        msg.channel.send(buildHelp({
+            title: this.trigger,
+            description: 'Manage personal reminders.',
+            commands: [
+                {
+                    command: `${this.trigger} list`,
+                    explanation: 'View your reminders.',
+                },
+                {
+                    command: `${this.trigger} rm <reminder number>`,
+                    explanation: 'Remove a reminder (get the number with `list`).',
+                },
+                {
+                    command: `${this.trigger} add Some reminder text <time>`,
+                    explanation: 'Add a new reminder "Some reminder text" for the '
+                    + 'given time. The reverse also works - you can do '
+                    + `\`${prefix}${this.trigger} add <time> Some reminder text\``,
+                },
+            ],
+            additional: [{
+                title: '⏲️ Valid input examples',
+                value: 'Valid input examples for the <time> value are `in 17 minutes`, '
+                + '`in 1 hour`, `in 3 days`, `on January 1`, `on March 4th`, `on 9 Feb`, '
+                + '`on 30.11.2020` (DD.MM.YYYY), `on 14.02` (DD.MM), `on Thursday`, '
+                + '`on Wed`, `on friday`, etc.',
+            }],
+        }));
     }
 }

@@ -1,4 +1,4 @@
-import Discord from 'discord.js';
+import { Message, MessageMentions } from 'discord.js';
 import BaseCommand, { ExecContext } from './base';
 import {
     reactSuccess as success,
@@ -6,6 +6,7 @@ import {
     getNickname,
     getMoment,
 } from '../utils/discord';
+import { buildHelp } from '../utils/help';
 
 export default class FriendlyFire implements BaseCommand {
     public readonly trigger: string = 'friendly';
@@ -22,7 +23,7 @@ export default class FriendlyFire implements BaseCommand {
         const { msg, knex } = ctx;
 
         if (!ctx.args.length) {
-            msg.channel.send(this.help());
+            this.sendHelp(msg);
             return;
         }
 
@@ -41,7 +42,7 @@ export default class FriendlyFire implements BaseCommand {
             }
 
             const mentions = msg.mentions.users.array();
-            const pattern = Discord.MessageMentions.USERS_PATTERN;
+            const pattern = MessageMentions.USERS_PATTERN;
 
             let killerId: string = msg.author.id;
             if (killer !== AUTHOR) {
@@ -164,11 +165,28 @@ export default class FriendlyFire implements BaseCommand {
 
     public async update(): Promise<void> {}
 
-    public help(): string {
-        return 'Keeps track of accidental friend murder 🙃\n'
-        + '* `friendly add me @VictimNick` - adds you as the killer of VictimNick.\n'
-        + '* `friendly add @KillerNick me` - adds you as the victim of KillerNick.\n'
-        + '* `friendly add @KillerNick @VictimNick` - adds KillerNick as the killer of VictimNick.\n'
-        + '* `friendly stats` - lists statistics about the whole deal.';
+    public async sendHelp(msg: Message): Promise<void> {
+        msg.channel.send(buildHelp({
+            title: this.trigger,
+            description: 'Keeps track of accidental friend murder 🙃\n',
+            commands: [
+                {
+                    command: `${this.trigger} add me @VictimNick`,
+                    explanation: 'Adds you as the killer of VictimNick.',
+                },
+                {
+                    command: `${this.trigger} add @KillerNick me`,
+                    explanation: 'Adds you as the victim of KillerNick.',
+                },
+                {
+                    command: `${this.trigger} add @KillerNick @VictimNick`,
+                    explanation: 'Adds KillerNick as the killer of VictimNick.',
+                },
+                {
+                    command: `${this.trigger} stats`,
+                    explanation: 'Lists statistics about the whole deal.',
+                },
+            ],
+        }));
     }
 }
