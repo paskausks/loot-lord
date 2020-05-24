@@ -30,7 +30,7 @@
     "build:watch:node": "nodemon --watch dist dist/index.js",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "start": "node dist/index.js",
+    "start": "node dist/run.js",
     "test": "jest",
     "knex": "knex",
     "migrate": "knex migrate:latest"

@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+* Added: The bot now has a public API, so the functionality of the bot can be extended, although, for now, the API is going to be super unstable while the project is this immature.
 * Added: Help responses now look a bit prettier.
 * Fixed: If a single argument is passed to the `!roll` command and it's not a number, an error message is returned.
 * Added: `!react` command.

@@ -68,3 +68,33 @@ Run the linter and auto-fix issues
 ```
 npm run lint:fix
 ```
+
+## Extending
+
+The bot has a public API of sorts, although it's expected to be very unstable, since it's also used internally. Here's some example code:
+
+```javascript
+const { bootstrap, Plugin } = require('./path/to/loot-lord');
+
+class TestPlugin extends Plugin {
+    constructor(opts) {
+        super(opts);
+
+        opts.ready.subscribe((client) => {
+            // `client` is the discord.js Client instance.
+            this.log('Bot connected. Hello from test plugin!', 'success');
+        });
+
+        opts.commandMessages.subscribe(({ message, command, args }) => {
+            // `message` is a discord.js Message instance,
+            console.log('The bot received a command', command, args);
+        });
+    }
+}
+
+bootstrap([
+    TestPlugin,
+]).then((client) => {
+    client.login('YOURDISCORDBOTTOKEN');
+});
+```
