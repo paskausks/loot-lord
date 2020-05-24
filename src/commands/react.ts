@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import BaseCommand, { ExecContext } from './base';
+import Command, { ExecContext } from './base';
 import {
     reactFail as fail,
 } from '../utils/discord';
@@ -52,7 +52,7 @@ const emojiAlphabet: EmojiAlphabet = {
     z: '🇿',
 };
 
-export default class React implements BaseCommand {
+export default class React extends Command {
     // Reacting is increeeeeedibly slow
     // so we limit the amount of characters
     private MAXLENGTH: number = 10;
@@ -97,8 +97,6 @@ export default class React implements BaseCommand {
             targetMessage.react(emoji);
         });
     }
-
-    public async update(): Promise<void> {}
 
     public async sendHelp(msg: Message): Promise<void> {
         msg.channel.send(buildHelp({

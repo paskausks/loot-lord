@@ -1,7 +1,7 @@
 import Knex from 'knex';
 import Discord from 'discord.js';
-import commandDirectory from '.';
-import BaseCommand, { ExecContext } from './base';
+import { Subject } from 'rxjs';
+import Command, { ExecContext, COMMAND_PLUGIN_PREFIX } from './base';
 import { SimpleCommand as SimpleCommandModel } from '../models';
 import {
     reactSuccess as success,
@@ -10,10 +10,19 @@ import {
     getNickname,
 } from '../utils/discord';
 import { buildHelp } from '../utils/help';
-
+import { PluginInitOptions } from '../core/plugins';
+import { getPrefix } from '../utils/bot';
 
 interface KeyMap {
     [key: string]: (message: Discord.Message) => string;
+}
+
+export const COMMAND_DISPATCHER_SUBJECT = `${COMMAND_PLUGIN_PREFIX}CUSTOM`;
+
+export interface CommandDispatcherMessage {
+    knex: Knex;
+    message: Discord.Message;
+    command: string;
 }
 
 const keywordKeyMap: KeyMap = {
@@ -33,9 +42,18 @@ const keywordKeyMap: KeyMap = {
     arg: (message: Discord.Message) => message.content.split(' ').splice(1).join(' '),
 };
 
-export default class SimpleCommand implements BaseCommand {
+export default class SimpleCommand extends Command {
     public readonly trigger: string = 'command';
     private table: string = 'simplecommands';
+
+    constructor(options: PluginInitOptions) {
+        super(options);
+
+        // Register a custom Subject for CommandDispatcher
+        const subj: Subject<CommandDispatcherMessage> = new Subject();
+        options.plugins.set(COMMAND_DISPATCHER_SUBJECT, subj);
+        subj.subscribe(this.handleCommandRequest.bind(this));
+    }
 
     public async exec(ctx: ExecContext) {
         const [subCommand, ...args] = ctx.args;
@@ -68,8 +86,13 @@ export default class SimpleCommand implements BaseCommand {
             break;
         }
         case 'info': {
-            // FIXME: "!command info" without arguments does not work
             const [commandQuery] = args;
+
+            if (!commandQuery) {
+                fail(msg, 'You have to provide a command!');
+                return;
+            }
+
             const command = await this.getCommand(knex, commandQuery, [
                 'created_by_id',
                 'created_at',
@@ -98,7 +121,7 @@ export default class SimpleCommand implements BaseCommand {
                 return;
             }
 
-            if (Object.keys(commandDirectory).some((cmd) => command === cmd)) {
+            if (this.getCommands().some((cmd) => command === cmd)) {
                 fail(msg, 'This name is used by a built-in command.');
                 return;
             }
@@ -185,7 +208,35 @@ export default class SimpleCommand implements BaseCommand {
         }
     }
 
-    public async update() {}
+    /**
+     * Handle CommandDispatcher requests, for when
+     * a command in a message doesn't match built-ins.
+     */
+    private async handleCommandRequest(request: CommandDispatcherMessage) {
+        // Try simple commands
+        const { knex, command, message } = request;
+        const simpleCommand = await this.getCommand(knex, command, ['command', 'response']);
+
+        if (!simpleCommand) {
+            // No matching command found.
+            // Create a list of builtins and custom commands.
+            const simpleCommands = await this.getAll(knex);
+            const commandList = this.getCommands()
+                .concat(simpleCommands.map((cmd) => cmd.command));
+
+            fail(
+                message,
+                `Unrecognized command. Try one of these: ${commandList.map(
+                    (v) => `\`${getPrefix()}${v}\``,
+                ).join(', ')}.`,
+            );
+            return;
+        }
+
+        await message.channel.send(
+            this.parseCommand(simpleCommand, message).response,
+        );
+    }
 
     public async sendHelp(msg: Discord.Message): Promise<void> {
         msg.channel.send(buildHelp({

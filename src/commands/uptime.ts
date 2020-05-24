@@ -1,9 +1,9 @@
 import { Message } from 'discord.js';
 import moment from 'moment';
-import BaseCommand, { ExecContext } from './base';
+import Command, { ExecContext } from './base';
 import { buildHelp } from '../utils/help';
 
-export default class Uptime implements BaseCommand {
+export default class Uptime extends Command {
     public readonly trigger: string = 'uptime';
     private dateTime: moment.Moment = moment();
     public async exec(ctx: ExecContext) {
@@ -12,8 +12,6 @@ export default class Uptime implements BaseCommand {
             `The bot has been running for ${uptime} (since ${this.dateTime.utc().format('llll')}).`,
         );
     }
-
-    public async update(): Promise<void> {}
 
     public async sendHelp(msg: Message): Promise<void> {
         msg.channel.send(buildHelp({

@@ -74,9 +74,12 @@ npm run lint:fix
 The bot has a public API of sorts, although it's expected to be very unstable, since it's also used internally. Here's some example code:
 
 ```javascript
-const { bootstrap, Plugin } = require('./path/to/loot-lord');
+const { bootstrap, Plugin, Command } = require('./path/to/loot-lord');
 
-class TestPlugin extends Plugin {
+/**
+ * A very simple plugin example.
+ */
+class ExamplePlugin extends Plugin {
     constructor(opts) {
         super(opts);
 
@@ -92,8 +95,41 @@ class TestPlugin extends Plugin {
     }
 }
 
+/**
+ * A simple command example.
+ */
+class ExampleCommand extends Command {
+    // The command will be called with "sample"
+    trigger = 'sample';
+
+    exec(ctx) {
+        // `knex` is an instance of knex,
+        // which has access to the sqlite database.
+        const { msg, knex, args } = ctx;
+
+        switch(args[0]) {
+            // !sample foo
+            case 'foo': {
+                msg.channel.send(new Date().toLocaleString());
+                break;
+            }
+            // !sample bar
+            case 'bar': {
+                msg.channel.send(Math.random().toString());
+                break;
+            }
+
+            // !sample
+            default: {
+                msg.channel.send('Hello!');
+            }
+        }
+    }
+}
+
 bootstrap([
-    TestPlugin,
+    ExamplePlugin,
+    ExampleCommand,
 ]).then((client) => {
     client.login('YOURDISCORDBOTTOKEN');
 });

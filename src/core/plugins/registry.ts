@@ -6,19 +6,23 @@ import {
     SubjectMap,
 } from '../observables';
 import Logger from './logger';
+import Pulse from './pulse';
+import CommandDispatcher from './command-dispatcher';
 
 type PluginArray = PluginConstructor[];
 type PluginInitDependencies = 'client' | 'knex';
 
 /**
- * An array of built in plugins.
+ * An array of built-in plugins.
  */
 const systemPlugins: PluginArray = [
     Logger,
+    Pulse,
+    CommandDispatcher,
 ];
 
 /**
- * Initializes the given plugins together with the
+ * Initializes the built-in plugins together with the
  * supplied plugins.
  */
 export const initPlugins = (
@@ -35,7 +39,7 @@ export const initPlugins = (
     };
 
     return systemPlugins.concat(additional).map(
-        (PluginCls) => new PluginCls({
+        (PluginCls) => PluginCls.create({
             ...dependencies,
             ...initOptions,
         } as PluginInitOptions),

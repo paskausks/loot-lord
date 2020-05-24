@@ -26,12 +26,13 @@ export interface PluginInitOptions {
  */
 export interface PluginConstructor {
   new (options: PluginInitOptions): Plugin;
+  create (options: PluginInitOptions): Plugin;
 }
 
 /**
  * Main base class for plugins.
  */
-abstract class Plugin {
+class Plugin {
     private readonly plugins: SubjectMap;
 
     constructor(options: PluginInitOptions) {
@@ -50,7 +51,7 @@ abstract class Plugin {
     /**
      * Dispatch a message to a plugin.
      */
-    private dispatch<T>(destinationKey: string, message: T) {
+    protected dispatch<T>(destinationKey: string, message: T) {
         const plugin = this.plugins.get(destinationKey) as Subject<T>;
 
         if (!plugin) {
@@ -58,6 +59,17 @@ abstract class Plugin {
         }
 
         plugin.next(message);
+    }
+
+    /**
+     * Return loaded plugins.
+     */
+    protected getPlugins(): string[] {
+        return Array.from(this.plugins.keys());
+    }
+
+    static create(options: PluginInitOptions): Plugin {
+        return new this(options);
     }
 }
 

@@ -1,5 +1,5 @@
 import { Message, MessageMentions } from 'discord.js';
-import BaseCommand, { ExecContext } from './base';
+import Command, { ExecContext } from './base';
 import {
     reactSuccess as success,
     reactFail as fail,
@@ -8,7 +8,7 @@ import {
 } from '../utils/discord';
 import { buildHelp } from '../utils/help';
 
-export default class FriendlyFire implements BaseCommand {
+export default class FriendlyFire extends Command {
     public readonly trigger: string = 'friendly';
     private table: string = 'friendlyfire';
 
@@ -162,8 +162,6 @@ export default class FriendlyFire implements BaseCommand {
             );
         }
     }
-
-    public async update(): Promise<void> {}
 
     public async sendHelp(msg: Message): Promise<void> {
         msg.channel.send(buildHelp({

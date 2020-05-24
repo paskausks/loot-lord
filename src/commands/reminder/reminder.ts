@@ -1,7 +1,8 @@
 import Knex from 'knex';
 import moment from 'moment';
+import { Subject } from 'rxjs';
 import { Message } from 'discord.js';
-import BaseCommand, { ExecContext, UpdateContext } from '../base';
+import Command, { ExecContext } from '../base';
 import {
     reactSuccess as success,
     reactFail as fail,
@@ -11,15 +12,24 @@ import { getPrefix } from '../../utils/bot';
 import { buildHelp } from '../../utils/help';
 import { Reminder as ReminderModel } from '../../models';
 import messageParsers, { ParseResult } from './parsers';
+import { PULSE_SUBJECT_KEY, PulseMessage } from '../../core/plugins/pulse/message';
+import { PluginInitOptions } from '../../core/plugins';
 
 /*
  * Reminders inspired by Slack.
  * https://slack.com/intl/en-lv/help/articles/208423427-Set-a-reminder
  */
-export default class Reminder implements BaseCommand {
+export default class Reminder extends Command {
     public readonly trigger: string = 'reminder';
     private table: string = 'reminders';
     private static REMINDER_MAXLENGTH: number = 250;
+
+    constructor(options: PluginInitOptions) {
+        super(options);
+        (options.plugins.get(PULSE_SUBJECT_KEY) as Subject<PulseMessage>).subscribe(
+            this.update.bind(this),
+        );
+    }
 
     public async exec(ctx: ExecContext) {
         const [subCommand, ...args] = ctx.args;
@@ -62,7 +72,7 @@ export default class Reminder implements BaseCommand {
         }
     }
 
-    public async update(ctx: UpdateContext): Promise<void> {
+    public async update(ctx: PulseMessage): Promise<void> {
         const all = await ctx.knex
             .select()
             .from<ReminderModel>(this.table)

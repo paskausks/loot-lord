@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import BaseCommand, { ExecContext } from './base';
+import Command, { ExecContext } from './base';
 import { getPrefix } from '../utils/bot';
 import { reactFail } from '../utils/discord';
 import { buildHelp } from '../utils/help';
@@ -13,7 +13,7 @@ type RandomFunc = () => number;
 /**
  * Various RNG commands.
  */
-export default class Roll implements BaseCommand {
+export default class Roll extends Command {
     public readonly trigger: string = 'roll';
     public async exec(ctx: ExecContext) {
         const { msg, args } = ctx;
@@ -88,8 +88,6 @@ export default class Roll implements BaseCommand {
         }
         return Math.floor(randomFunc() * (to - from)) + from;
     }
-
-    public async update(): Promise<void> {}
 
     public async sendHelp(msg: Message): Promise<void> {
         const prefix = getPrefix();

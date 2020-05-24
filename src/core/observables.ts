@@ -20,7 +20,7 @@ export interface BotCommandMessage {
 }
 
 export type ClientObservable = Observable<Discord.Client>;
-export type SubjectMap = Map<string, Subject<any>>;
+export type SubjectMap = Map<string, Subject<any>|Observable<any>>;
 export type MessageObservable = Observable<Discord.Message>;
 export type BotCommandMessageObservable = Observable<BotCommandMessage>;
 
@@ -33,7 +33,6 @@ export const rawMessage = (client: Discord.Client): MessageObservable => fromEve
  * An observable which broadcasts messages which could be
  * valid bot commands.
  */
-// eslint-disable-next-line import/prefer-default-export
 export const botCommandMessage = (client: Discord.Client): BotCommandMessageObservable => {
     const pref = getPrefix();
     return from(rawMessage(client)).pipe(

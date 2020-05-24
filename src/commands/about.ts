@@ -1,10 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import signale from 'signale';
 import moment from 'moment';
 import { Message } from 'discord.js';
 import { getNickname } from '../utils/discord';
-import BaseCommand, { ExecContext } from './base';
+import Command, { ExecContext } from './base';
 import { BuildInfo } from '../utils/write-build-info';
 import { buildHelp } from '../utils/help';
 
@@ -12,7 +11,7 @@ interface PackageJson {
     version: string;
 }
 
-export default class About implements BaseCommand {
+export default class About extends Command {
     public readonly trigger: string = 'about';
     public async exec(ctx: ExecContext) {
         let packageInfo: PackageJson = {
@@ -25,7 +24,7 @@ export default class About implements BaseCommand {
                 fs.readFileSync(path.join(__dirname, '..', '..', 'package.json')).toString(),
             );
         } catch {
-            signale.debug('package.json missing!');
+            this.log('package.json missing!', 'debug');
         }
 
         try {
@@ -34,7 +33,7 @@ export default class About implements BaseCommand {
             ) as BuildInfo;
             buildTime = moment(buildInfo.timestamp);
         } catch {
-            signale.debug('build-info.json missing!');
+            this.log('build-info.json missing!', 'debug');
         }
 
         const author = await getNickname(ctx.msg, '124137111975755776');
@@ -51,8 +50,6 @@ export default class About implements BaseCommand {
             + 'Source code at https://github.com/paskausks/loot-lord\n',
         );
     }
-
-    public async update(): Promise<void> {}
 
     public async sendHelp(msg: Message): Promise<void> {
         msg.channel.send(buildHelp({
