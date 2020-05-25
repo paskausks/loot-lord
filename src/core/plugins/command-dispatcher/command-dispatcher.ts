@@ -1,12 +1,11 @@
-import { PluginInitOptions, Plugin } from '.';
-import { HELP_POSTFIX, COMMAND_PLUGIN_PREFIX, ExecContext } from '../../commands/base';
-import { COMMAND_DISPATCHER_SUBJECT, CommandDispatcherMessage } from '../../commands/simple-command';
+import { PluginInitOptions, Plugin } from '..';
+import { HELP_POSTFIX, COMMAND_PLUGIN_PREFIX, ExecContext } from '../../../commands/base';
+import { COMMAND_DISPATCHER_SUBJECT, CommandDispatcherMessage } from './message';
 
 /**
  * Forward messages to commands.
  */
 class CommandDispatcher extends Plugin {
-    public readonly interval: number = 30 * 1000;
     constructor(options: PluginInitOptions) {
         super(options);
 

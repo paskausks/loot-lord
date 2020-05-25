@@ -65,8 +65,7 @@ describe('reminder', () => {
             expectedMessage: string,
             expectedTime: Date,
         ) => {
-            const reminder = new Reminder();
-            const result = reminder.parseReminder(input, fromDate);
+            const result = Reminder.parseReminder(input, fromDate);
 
             if (!result) {
                 throw new Error('result is null!');
@@ -86,8 +85,7 @@ describe('reminder', () => {
             expectedMessage: string,
             dayIndex: number, // see: https://momentjs.com/docs/#/get-set/day/
         ) => {
-            const reminder = new Reminder();
-            const result = reminder.parseReminder(input, fromDate);
+            const result = Reminder.parseReminder(input, fromDate);
 
             if (!result) {
                 throw new Error('result is null!');
@@ -111,9 +109,7 @@ describe('reminder', () => {
             ['123.421 at XX:XX'],
             ['a random text from someone'],
         ])('should return null on incorrect input', (input: string) => {
-            const reminder = new Reminder();
-
-            expect(reminder.parseReminder(input)).toBe(null);
+            expect(Reminder.parseReminder(input)).toBe(null);
         });
     });
 });

@@ -1,7 +1,7 @@
 import Knex from 'knex';
 import Discord from 'discord.js';
 import { Subject } from 'rxjs';
-import Command, { ExecContext, COMMAND_PLUGIN_PREFIX } from './base';
+import Command, { ExecContext } from './base';
 import { SimpleCommand as SimpleCommandModel } from '../models';
 import {
     reactSuccess as success,
@@ -12,17 +12,11 @@ import {
 import { buildHelp } from '../utils/help';
 import { PluginInitOptions } from '../core/plugins';
 import { getPrefix } from '../utils/bot';
+import { COMMAND_DISPATCHER_SUBJECT, CommandDispatcherMessage } from '../core/plugins/command-dispatcher/message';
+
 
 interface KeyMap {
     [key: string]: (message: Discord.Message) => string;
-}
-
-export const COMMAND_DISPATCHER_SUBJECT = `${COMMAND_PLUGIN_PREFIX}CUSTOM`;
-
-export interface CommandDispatcherMessage {
-    knex: Knex;
-    message: Discord.Message;
-    command: string;
 }
 
 const keywordKeyMap: KeyMap = {

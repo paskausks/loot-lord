@@ -32,6 +32,7 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "start": "node dist/run.js",
     "test": "jest",
+    "test:watch": "jest --watch",
     "knex": "knex",
     "migrate": "knex migrate:latest"
   },

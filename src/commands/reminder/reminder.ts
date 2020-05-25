@@ -108,7 +108,7 @@ export default class Reminder extends Command {
 
     private async add(ctx: ExecContext, reminderQuery: string) {
         const { msg, knex } = ctx;
-        const reminderData = this.parseReminder(reminderQuery);
+        const reminderData = Reminder.parseReminder(reminderQuery);
 
         if (!reminderData) {
             fail(msg, 'Your syntax is incorrect. Check the command help and try again!');
@@ -206,7 +206,7 @@ export default class Reminder extends Command {
         });
     }
 
-    public parseReminder(message: string, from: Date = new Date()): ParseResult | null {
+    public static parseReminder(message: string, from: Date = new Date()): ParseResult | null {
         // time designations begin either with "in", "on"
         // so we treat them separately.
         const sourceTime = moment(from);
