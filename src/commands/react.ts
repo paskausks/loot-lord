@@ -3,7 +3,7 @@ import Command, { ExecContext } from './base';
 import {
     reactFail as fail,
 } from '../utils/discord';
-import { getPrefix } from '../utils/bot';
+import { getNewestRegularMessage } from '../utils/bot';
 import { buildHelp } from '../utils/help';
 
 interface EmojiAlphabet {
@@ -74,12 +74,7 @@ export default class React extends Command {
             return;
         }
 
-        // Get the last message which isn't a bot
-        // command and isn't from the bot itself.
-        const allTargetMessages = msg.channel.messages.filter(
-            (message) => !message.content.startsWith(getPrefix()) && !message.author.bot,
-        ).array();
-        const targetMessage = allTargetMessages[allTargetMessages.length - 1];
+        const targetMessage = await getNewestRegularMessage(msg);
 
         if (!targetMessage) {
             fail(msg, 'No messages have been cached which I can react to!');

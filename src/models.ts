@@ -27,3 +27,15 @@ export interface Reminder {
     created_at: string;
     updated_at: string;
 }
+
+export interface Quote {
+    id: number;
+    author_id: string;
+    nominee_id: string;
+    message_id: string;
+    message_url: string;
+    message: string;
+    accepted: number;
+    created_at: string;
+    updated_at: string;
+}

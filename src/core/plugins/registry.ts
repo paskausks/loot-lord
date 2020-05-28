@@ -3,6 +3,7 @@ import {
     ready,
     rawMessage,
     botCommandMessage,
+    reactionAdd,
     SubjectMap,
 } from '../observables';
 import Logger from './logger';
@@ -34,6 +35,7 @@ export const initPlugins = (
         ready: ready(client),
         allMessages: rawMessage(client),
         commandMessages: botCommandMessage(client),
+        addedReactions: reactionAdd(client),
         plugins: new Map() as SubjectMap,
         ...dependencies,
     };

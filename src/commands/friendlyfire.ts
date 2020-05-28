@@ -4,9 +4,9 @@ import {
     reactSuccess as success,
     reactFail as fail,
     getNickname,
-    getMoment,
 } from '../utils/discord';
 import { buildHelp } from '../utils/help';
+import { getMoment } from '../utils/moment';
 
 export default class FriendlyFire extends Command {
     public readonly trigger: string = 'friendly';

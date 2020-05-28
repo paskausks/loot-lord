@@ -1,8 +1,9 @@
-import Discord from 'discord.js';
-import moment from 'moment';
+import {
+    Message, GuildMember, Client, User,
+} from 'discord.js';
 
 // eslint-disable-next-line import/prefer-default-export
-export const reactSuccess = async (sourceMsg: Discord.Message, reply?: string) => {
+export const reactSuccess = async (sourceMsg: Message, reply?: string) => {
     await sourceMsg.react('✅');
 
     if (reply) {
@@ -10,7 +11,7 @@ export const reactSuccess = async (sourceMsg: Discord.Message, reply?: string) =
     }
 };
 
-export const reactFail = async (sourceMsg: Discord.Message, reply?: string) => {
+export const reactFail = async (sourceMsg: Message, reply?: string) => {
     await sourceMsg.react('❌');
 
     if (reply) {
@@ -18,24 +19,20 @@ export const reactFail = async (sourceMsg: Discord.Message, reply?: string) => {
     }
 };
 
-export const getMoment = (dateString: string): moment.Moment => moment
-    .utc(dateString)
-    .local();
-
 export const getGuildMember = async (
-    source: Discord.Message, userId: string,
-): Promise<Discord.GuildMember | null> => source.guild.members.find(
-    (m: Discord.GuildMember) => m.user.id === userId,
+    source: Message, userId: string,
+): Promise<GuildMember | null> => source.guild.members.find(
+    (m: GuildMember) => m.user.id === userId,
 );
 
 export const getUser = async (
-    source: Discord.Client, userId: string,
-): Promise<Discord.User | null> => source.users.find(
-    (user: Discord.User) => user.id === userId,
+    source: Client, userId: string,
+): Promise<User | null> => source.users.find(
+    (user: User) => user.id === userId,
 );
 
 export const getNickname = async (
-    source: Discord.Message, userId: string,
+    source: Message, userId: string,
 ): Promise<string> => {
     let member;
     try {

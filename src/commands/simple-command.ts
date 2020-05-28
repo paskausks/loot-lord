@@ -6,13 +6,13 @@ import { SimpleCommand as SimpleCommandModel } from '../models';
 import {
     reactSuccess as success,
     reactFail as fail,
-    getMoment,
     getNickname,
 } from '../utils/discord';
 import { buildHelp } from '../utils/help';
 import { PluginInitOptions } from '../core/plugins';
 import { getPrefix } from '../utils/bot';
 import { COMMAND_DISPATCHER_SUBJECT, CommandDispatcherMessage } from '../core/plugins/command-dispatcher/message';
+import { getMoment } from '../utils/moment';
 
 
 interface KeyMap {

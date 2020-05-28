@@ -5,6 +5,7 @@ import About from './about';
 import Uptime from './uptime';
 import Roll from './roll';
 import React from './react';
+import Quote from './quote';
 
 const commands = [
     Help,
@@ -12,6 +13,7 @@ const commands = [
     Reminder,
     Roll,
     React,
+    Quote,
     About,
     Uptime,
 ];

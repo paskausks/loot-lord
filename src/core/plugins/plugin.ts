@@ -5,6 +5,7 @@ import {
     BotCommandMessageObservable,
     MessageObservable,
     ClientObservable,
+    ReactionAddObservable,
     SubjectMap,
 } from '../observables';
 import LoggerMessage, { LOGGER_SUBJECT_KEY, levels } from './logger/message'; // Prevent circular import
@@ -18,6 +19,7 @@ export interface PluginInitOptions {
     ready: ClientObservable;
     allMessages: MessageObservable;
     commandMessages: BotCommandMessageObservable;
+    addedReactions: ReactionAddObservable,
     plugins: SubjectMap;
 }
 
