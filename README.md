@@ -39,6 +39,18 @@ Run tests
 npm test
 ```
 
+Rerun tests on changes
+
+```
+npm test:watch
+```
+
+Run tests and collect coverage
+
+```
+npm test:coverage
+```
+
 Build sources
 
 ```
