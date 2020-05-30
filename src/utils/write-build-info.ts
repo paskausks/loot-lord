@@ -14,7 +14,7 @@ interface BuildOsInfo {
     type: string;
 }
 
-export interface BuildInfo {
+interface BuildInfo {
     timestamp: string;
     os: BuildOsInfo;
 }
@@ -33,3 +33,8 @@ fs.writeFileSync(
         },
     } as BuildInfo, null, 4),
 );
+
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    BuildInfo,
+};

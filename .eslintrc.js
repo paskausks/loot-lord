@@ -30,12 +30,14 @@ module.exports = {
     },
     rules: {
         indent: ['error', 4],
+        'no-undef': 'off', // trust the compiler
         'no-await-in-loop': 'off',
         'lines-between-class-members': 'off',
         'class-methods-use-this': 'off',
         '@typescript-eslint/explicit-function-return-type': 'error',
         'import/no-unresolved': [2, { 'commonjs': true, 'amd': true }],
-        'import/extensions': [ 'error', 'ignorePackages',
+        'import/exports-last': ['error'],
+        'import/extensions': ['error', 'ignorePackages',
             {
                 js: 'never',
                 jsx: 'never',
@@ -56,7 +58,7 @@ module.exports = {
         // Weird stuff with missing and required semicolons
         // on default exports
         // https://github.com/typescript-eslint/typescript-eslint/issues/123
-        'semi': "off",
+        'semi': 'off',
         '@typescript-eslint/semi': ['error'],
 
         '@typescript-eslint/camelcase': ['error', { 'allow': [

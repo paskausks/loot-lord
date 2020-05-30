@@ -13,7 +13,7 @@ import LoggerMessage, { LOGGER_SUBJECT_KEY, levels } from './logger/message'; //
 /**
  * Initialization options for a plugin
  */
-export interface PluginInitOptions {
+interface PluginInitOptions {
     knex: knex;
     client: Client;
     ready: ClientObservable;
@@ -26,7 +26,7 @@ export interface PluginInitOptions {
 /**
  * An interface describing the plugin constructor
  */
-export interface PluginConstructor {
+interface PluginConstructor {
   new (options: PluginInitOptions): Plugin;
   create (options: PluginInitOptions): Plugin;
 }
@@ -75,4 +75,8 @@ class Plugin {
     }
 }
 
-export default Plugin;
+export {
+    Plugin as default,
+    PluginInitOptions,
+    PluginConstructor,
+};

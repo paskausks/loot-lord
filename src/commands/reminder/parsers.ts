@@ -4,7 +4,7 @@ import { isValidSequenceNumber } from '../../utils/number';
 /**
  * A successful result returned by a reminder message parser function.
  */
-export interface ParseResult {
+interface ParseResult {
     dateTime: moment.Moment;
     reminder: string;
 }
@@ -14,7 +14,7 @@ type ReminderMessageParserResult = ParseResult | null;
 /**
  * A type which defines a message parser function.
  */
-export type ReminderMessageParser = (
+type ReminderMessageParser = (
     message: string,
     sourceDate: moment.Moment
 ) => ReminderMessageParserResult;
@@ -27,7 +27,7 @@ export type ReminderMessageParser = (
  * By default this pattern is "<message> <time descriptor>",
  * but it can also be reversed.
  */
-export function execReminderMessage(
+function execReminderMessage(
     message: string,
     timePattern: string,
     reversed = false,
@@ -266,4 +266,8 @@ const parsers: ReminderMessageParser[] = [
     },
 ];
 
-export default parsers;
+export {
+    parsers as default,
+    ParseResult,
+    ReminderMessageParser,
+};
