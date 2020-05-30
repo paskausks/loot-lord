@@ -268,6 +268,7 @@ const parsers: ReminderMessageParser[] = [
 
 export {
     parsers as default,
+    execReminderMessage,
     ParseResult,
     ReminderMessageParser,
 };
