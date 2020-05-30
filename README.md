@@ -13,10 +13,10 @@ Install dependencies.
 npm install
 ```
 
-Run migrations.
+Perform migrations.
 
 ```
-npm run knex migrate:latest
+npm run migrate
 ```
 
 Create a [discord bot account](https://discordapp.com/developers/applications), create a bot user for the application, get it's token, set it in _.env.sample_ file and save it as _.env_.
@@ -79,6 +79,12 @@ Run the linter and auto-fix issues
 
 ```
 npm run lint:fix
+```
+
+Perform database migrations
+
+```
+npm run migrate
 ```
 
 ## Extending
