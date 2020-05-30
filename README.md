@@ -1,4 +1,7 @@
 # Loot Lord
+
+![Master](https://github.com/paskausks/loot-lord/workflows/Master/badge.svg?branch=master)
+
 A discord bot of sorts.
 
 ## Requirements
