@@ -18,7 +18,7 @@ class Logger extends Plugin {
             let messageInfo = 'via direct message';
             if (message.guild) {
                 // Command received from server.
-                messageInfo = `on ${message.guild.name}, #${(message.channel as TextChannel).name}.`;
+                messageInfo = `on ${message.guild.name}, #${(message.channel as TextChannel).name}`;
             }
 
             signale.info(
@@ -27,11 +27,10 @@ class Logger extends Plugin {
             );
         });
 
-
         // Expose logger subject and subscribe to it.
         const subject: Subject<LoggerMessage> = new Subject();
         options.plugins.set(LOGGER_SUBJECT_KEY, subject);
-        subject.subscribe((message) => signale[message.level || 'info'](message));
+        subject.subscribe((loggerMessage) => signale[loggerMessage.level || 'info'](loggerMessage.message));
     }
 }
 
