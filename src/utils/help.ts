@@ -42,8 +42,7 @@ interface HelpEmbed {
 /**
  * Builds a help command ready to send as a Discord message.
  */
-// eslint-disable-next-line import/prefer-default-export
-export function buildHelp(helpContext: HelpBuilderContext): { embed: HelpEmbed } {
+function buildHelp(helpContext: HelpBuilderContext): { embed: HelpEmbed } {
     const prefix = getPrefix();
     const fields = (helpContext.commands || [])
         .map((command) => ({ name: `${prefix}${command.command}`, value: command.explanation }))
@@ -61,3 +60,8 @@ export function buildHelp(helpContext: HelpBuilderContext): { embed: HelpEmbed }
         },
     };
 }
+
+export {
+    HelpBuilderContext,
+    buildHelp,
+};
