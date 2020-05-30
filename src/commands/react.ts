@@ -74,7 +74,7 @@ export default class React extends Command {
             return;
         }
 
-        const targetMessage = await getNewestRegularMessage(msg);
+        const targetMessage = getNewestRegularMessage(msg);
 
         if (!targetMessage) {
             fail(msg, 'No messages have been cached which I can react to!');

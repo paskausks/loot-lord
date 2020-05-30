@@ -27,7 +27,7 @@ function splitMessage(msg: { content: string }): { command: string; args: string
  * Get all cached messages which aren't bot
  * commands and aren't from the bot itself.
  */
-async function getRegularMessages(msg: Message): Promise<Message[]> {
+function getRegularMessages(msg: Message): Message[] {
     return msg.channel.messages.filter(
         (message) => !message.content.startsWith(getPrefix()) && !message.author.bot,
     ).array();
@@ -37,8 +37,8 @@ async function getRegularMessages(msg: Message): Promise<Message[]> {
  * Get the last message which isn't a bot
  * command and isn't from the bot itself.
  */
-async function getNewestRegularMessage(msg: Message): Promise<Message | undefined> {
-    const messages = await getRegularMessages(msg);
+function getNewestRegularMessage(msg: Message): Message | undefined {
+    const messages = getRegularMessages(msg);
     return messages[messages.length - 1];
 }
 

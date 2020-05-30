@@ -70,7 +70,7 @@ export default class Quote extends Command {
 
     private async handleNomination(ctx: ExecContext): Promise<void> {
         const { msg, knex } = ctx;
-        const lastMessage = await getNewestRegularMessage(msg);
+        const lastMessage = getNewestRegularMessage(msg);
 
         if (!lastMessage) {
             reactFail(msg, 'I don\'t have any messages cached which you can nominate!');
