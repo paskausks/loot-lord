@@ -35,15 +35,15 @@ interface HelpBuilderContext {
 interface HelpEmbed {
     title: string;
     description: string;
-    color: number
-    fields: { name: string; value: string }[]
+    color: number;
+    fields: { name: string; value: string }[];
 }
 
 /**
  * Builds a help command ready to send as a Discord message.
  */
 // eslint-disable-next-line import/prefer-default-export
-export const buildHelp = (helpContext: HelpBuilderContext): { embed: HelpEmbed } => {
+export function buildHelp(helpContext: HelpBuilderContext): { embed: HelpEmbed } {
     const prefix = getPrefix();
     const fields = (helpContext.commands || [])
         .map((command) => ({ name: `${prefix}${command.command}`, value: command.explanation }))
@@ -60,4 +60,4 @@ export const buildHelp = (helpContext: HelpBuilderContext): { embed: HelpEmbed }
             fields,
         },
     };
-};
+}

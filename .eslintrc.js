@@ -5,7 +5,8 @@ module.exports = {
     },
     extends: [
         'airbnb-base',
-        'plugin:jest/recommended'
+        'plugin:jest/recommended',
+        'plugin:@typescript-eslint/recommended'
     ],
     globals: {
         Atomics: 'readonly',
@@ -30,8 +31,9 @@ module.exports = {
     rules: {
         indent: ['error', 4],
         'no-await-in-loop': 'off',
-        'lines-between-class-members': ['off'],
+        'lines-between-class-members': 'off',
         'class-methods-use-this': 'off',
+        '@typescript-eslint/explicit-function-return-type': 'error',
         'import/no-unresolved': [2, { 'commonjs': true, 'amd': true }],
         'import/extensions': [ 'error', 'ignorePackages',
             {
@@ -54,7 +56,20 @@ module.exports = {
         // Weird stuff with missing and required semicolons
         // on default exports
         // https://github.com/typescript-eslint/typescript-eslint/issues/123
-        "semi": "off",
-        "@typescript-eslint/semi": ["error"]
+        'semi': "off",
+        '@typescript-eslint/semi': ['error'],
+
+        '@typescript-eslint/camelcase': ['error', { 'allow': [
+            // Database field whitelist
+            'user_id',
+            'reminder_at',
+            'reminder_url',
+            'killer_id',
+            'victim_id',
+            'author_id',
+            'nominee_id',
+            'message_id',
+            'message_url',
+        ]}]
     },
 };

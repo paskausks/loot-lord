@@ -13,7 +13,7 @@ interface PackageJson {
 
 export default class About extends Command {
     public readonly trigger: string = 'about';
-    public async exec(ctx: ExecContext) {
+    public async exec(ctx: ExecContext): Promise<void> {
         let packageInfo: PackageJson = {
             version: 'DEV',
         };

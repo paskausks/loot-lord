@@ -2,38 +2,41 @@ import {
     Message, GuildMember, Client, User,
 } from 'discord.js';
 
-// eslint-disable-next-line import/prefer-default-export
-export const reactSuccess = async (sourceMsg: Message, reply?: string) => {
+export async function reactSuccess(sourceMsg: Message, reply?: string): Promise<void> {
     await sourceMsg.react('✅');
 
     if (reply) {
         sourceMsg.channel.send(reply);
     }
-};
+}
 
-export const reactFail = async (sourceMsg: Message, reply?: string) => {
+export async function reactFail(sourceMsg: Message, reply?: string): Promise<void> {
     await sourceMsg.react('❌');
 
     if (reply) {
         sourceMsg.channel.send(reply);
     }
-};
+}
 
-export const getGuildMember = async (
+export async function getGuildMember(
     source: Message, userId: string,
-): Promise<GuildMember | null> => source.guild.members.find(
-    (m: GuildMember) => m.user.id === userId,
-);
+): Promise<GuildMember | null> {
+    return source.guild.members.find(
+        (m: GuildMember) => m.user.id === userId,
+    );
+}
 
-export const getUser = async (
+export async function getUser(
     source: Client, userId: string,
-): Promise<User | null> => source.users.find(
-    (user: User) => user.id === userId,
-);
+): Promise<User | null> {
+    return source.users.find(
+        (user: User) => user.id === userId,
+    );
+}
 
-export const getNickname = async (
+export async function getNickname(
     source: Message, userId: string,
-): Promise<string> => {
+): Promise<string> {
     let member;
     try {
         member = await getGuildMember(source, userId);
@@ -53,4 +56,4 @@ export const getNickname = async (
     }
 
     return member.nickname || member.user.username;
-};
+}

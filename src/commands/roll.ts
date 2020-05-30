@@ -15,7 +15,7 @@ type RandomFunc = () => number;
  */
 export default class Roll extends Command {
     public readonly trigger: string = 'roll';
-    public async exec(ctx: ExecContext) {
+    public async exec(ctx: ExecContext): Promise<void> {
         const { msg, args } = ctx;
         const [firstArg, secondArg] = args;
         const firstArgInt = parseInt(firstArg, 10);
@@ -69,7 +69,7 @@ export default class Roll extends Command {
         this.sendMessage(ctx, args[Roll.intRange(0, args.length)]);
     }
 
-    private sendMessage(ctx: ExecContext, message: string) {
+    private sendMessage(ctx: ExecContext, message: string): void {
         ctx.msg.channel.send(`🎲 **${message}** 🎲`);
     }
 
@@ -79,8 +79,8 @@ export default class Roll extends Command {
      * 0 to 100 by default.
      */
     public static intRange(
-        from: number = 0,
-        to: number = 101,
+        from = 0,
+        to = 101,
         randomFunc: RandomFunc = Math.random,
     ): number {
         if (from > to) {

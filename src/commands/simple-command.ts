@@ -38,7 +38,7 @@ const keywordKeyMap: KeyMap = {
 
 export default class SimpleCommand extends Command {
     public readonly trigger: string = 'command';
-    private table: string = 'simplecommands';
+    private table = 'simplecommands';
 
     constructor(options: PluginInitOptions) {
         super(options);
@@ -49,7 +49,7 @@ export default class SimpleCommand extends Command {
         subj.subscribe(this.handleCommandRequest.bind(this));
     }
 
-    public async exec(ctx: ExecContext) {
+    public async exec(ctx: ExecContext): Promise<void> {
         const [subCommand, ...args] = ctx.args;
         const validSubCommands = ['`add`', '`rm`', '`info`', '`list`', 'help'].join(
             ', ',
@@ -153,6 +153,7 @@ export default class SimpleCommand extends Command {
                 await knex(this.table).insert({
                     command,
                     response,
+                    // eslint-disable-next-line @typescript-eslint/camelcase
                     created_by_id: msg.author.id,
                 });
             } catch (e) {
@@ -206,7 +207,7 @@ export default class SimpleCommand extends Command {
      * Handle CommandDispatcher requests, for when
      * a command in a message doesn't match built-ins.
      */
-    private async handleCommandRequest(request: CommandDispatcherMessage) {
+    private async handleCommandRequest(request: CommandDispatcherMessage): Promise<void> {
         // Try simple commands
         const { knex, command, message } = request;
         const simpleCommand = await this.getCommand(knex, command, ['command', 'response']);

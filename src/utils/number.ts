@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/prefer-default-export
-export const isValidSequenceNumber = (number: string): boolean => {
+export function isValidSequenceNumber(number: string): boolean {
     const index = number.length - 2;
     const head = number.substring(0, index);
     const tail = number.substring(index);
@@ -35,4 +35,4 @@ export const isValidSequenceNumber = (number: string): boolean => {
     default:
         return false;
     }
-};
+}

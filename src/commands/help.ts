@@ -9,7 +9,7 @@ import { buildHelp } from '../utils/help';
 export default class Help extends Command {
     public readonly trigger: string = 'help';
 
-    public async exec(ctx: ExecContext) {
+    public async exec(ctx: ExecContext): Promise<void> {
         const { args, msg } = ctx;
         if (!args.length) {
             this.sendHelp(msg);

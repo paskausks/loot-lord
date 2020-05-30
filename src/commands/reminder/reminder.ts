@@ -21,8 +21,8 @@ import { PluginInitOptions } from '../../core/plugins';
  */
 export default class Reminder extends Command {
     public readonly trigger: string = 'reminder';
-    private table: string = 'reminders';
-    private static REMINDER_MAXLENGTH: number = 250;
+    private table = 'reminders';
+    private static REMINDER_MAXLENGTH = 250;
 
     constructor(options: PluginInitOptions) {
         super(options);
@@ -31,7 +31,7 @@ export default class Reminder extends Command {
         );
     }
 
-    public async exec(ctx: ExecContext) {
+    public async exec(ctx: ExecContext): Promise<void> {
         const [subCommand, ...args] = ctx.args;
 
         const validSubCommands = [
@@ -106,7 +106,7 @@ export default class Reminder extends Command {
         });
     }
 
-    private async add(ctx: ExecContext, reminderQuery: string) {
+    private async add(ctx: ExecContext, reminderQuery: string): Promise<void> {
         const { msg, knex } = ctx;
         const reminderData = Reminder.parseReminder(reminderQuery);
 
@@ -152,7 +152,7 @@ export default class Reminder extends Command {
             .orderBy('reminder_at', 'asc');
     }
 
-    private async remove(ctx: ExecContext) {
+    private async remove(ctx: ExecContext): Promise<void> {
         let removeIndex = parseInt(ctx.args[1], 10);
         const failMsg = 'Invalid reminder number. Check again with the `reminder list` command!';
 
@@ -181,7 +181,7 @@ export default class Reminder extends Command {
         success(ctx.msg);
     }
 
-    private async list(ctx: ExecContext) {
+    private async list(ctx: ExecContext): Promise<void> {
         const all = await this.getAll(ctx.knex, ctx.msg.author.id);
 
         if (!all.length) {

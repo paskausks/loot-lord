@@ -19,7 +19,7 @@ export interface PluginInitOptions {
     ready: ClientObservable;
     allMessages: MessageObservable;
     commandMessages: BotCommandMessageObservable;
-    addedReactions: ReactionAddObservable,
+    addedReactions: ReactionAddObservable;
     plugins: SubjectMap;
 }
 
@@ -46,14 +46,14 @@ class Plugin {
     /**
      * Dispatch log to logger plugin for output.
      */
-    log(message: string, level: levels = 'info') {
+    log(message: string, level: levels = 'info'): void {
         this.dispatch<LoggerMessage>(LOGGER_SUBJECT_KEY, { message, level });
     }
 
     /**
      * Dispatch a message to a plugin.
      */
-    protected dispatch<T>(destinationKey: string, message: T) {
+    protected dispatch<T>(destinationKey: string, message: T): void {
         const plugin = this.plugins.get(destinationKey) as Subject<T>;
 
         if (!plugin) {

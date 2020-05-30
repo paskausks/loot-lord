@@ -23,7 +23,7 @@ export default class Quote extends Command {
         options.ready.subscribe(() => this.cleanUp(options.knex));
     }
 
-    public async exec(ctx: ExecContext) {
+    public async exec(ctx: ExecContext): Promise<void> {
         const { msg, args } = ctx;
 
         if (!args.length) {
@@ -45,7 +45,7 @@ export default class Quote extends Command {
         }
     }
 
-    private async getRandom(ctx: ExecContext) {
+    private async getRandom(ctx: ExecContext): Promise<void> {
         const { knex, msg } = ctx;
         const [messageData] = await knex
             .select('message', 'author_id', 'message_url', 'created_at')
@@ -68,7 +68,7 @@ export default class Quote extends Command {
         });
     }
 
-    private async handleNomination(ctx: ExecContext) {
+    private async handleNomination(ctx: ExecContext): Promise<void> {
         const { msg, knex } = ctx;
         const lastMessage = await getNewestRegularMessage(msg);
 
@@ -139,7 +139,7 @@ export default class Quote extends Command {
         reactSuccess(message, 'Message added to quotes!');
     }
 
-    private async cleanUp(knex: Knex) {
+    private async cleanUp(knex: Knex): Promise<void> {
         const rows = await knex
             .select('id')
             .from<QuoteModel>(this.table)

@@ -9,13 +9,15 @@ export interface ParseResult {
     reminder: string;
 }
 
+type ReminderMessageParserResult = ParseResult | null;
+
 /**
  * A type which defines a message parser function.
  */
 export type ReminderMessageParser = (
     message: string,
     sourceDate: moment.Moment
-) => ParseResult | null;
+) => ReminderMessageParserResult;
 
 /**
  * Performs a RegExp exec on a message,
@@ -28,7 +30,7 @@ export type ReminderMessageParser = (
 export function execReminderMessage(
     message: string,
     timePattern: string,
-    reversed: boolean = false,
+    reversed = false,
 ): RegExpExecArray | null {
     const REMINDER_MESSAGE_PATTERN = '([\\s\\S]+)';
     let regexp: RegExp;
@@ -52,7 +54,7 @@ const parsers: ReminderMessageParser[] = [
      * Messages starting with "in"
      * e.g. "in 3 hours", "in 5 days", etc.
      */
-    (message, sourceDate) => {
+    (message, sourceDate): ReminderMessageParserResult => {
         const time = 'in (\\d+\\.?\\d*) ([a-zA-Z]+)';
         let result = execReminderMessage(message, time);
         let rawReminder: string;
@@ -102,7 +104,7 @@ const parsers: ReminderMessageParser[] = [
      * e.g. "on January 1", "on March 4th", "on Jun 22", "on 1 January",
      * "on 3rd April", "on 14th of Nov" etc.
      */
-    (message, sourceDate) => {
+    (message, sourceDate): ReminderMessageParserResult => {
         const timeDefault = 'on ([a-zA-Z]{2,}) (\\d+)(st|nd|rd|th)?';
         const timeAlt = 'on (\\d+)(st|nd|rd|th)? (?:of )?([a-zA-Z]{3,})';
         let result = execReminderMessage(message, timeDefault);
@@ -181,7 +183,7 @@ const parsers: ReminderMessageParser[] = [
      * and "DD.MM" e.g. "12.03.2020", "12.4.2020", "1.03.20",
      * "14.02", "1.2" etc.
      */
-    (message, sourceDate) => {
+    (message, sourceDate): ReminderMessageParserResult => {
         const time = 'on (\\d{1,2}\\.\\d{1,2}(?:\\.\\d{4})?)\\.?';
         let result = execReminderMessage(message, time);
         let rawReminder: string;
@@ -225,7 +227,7 @@ const parsers: ReminderMessageParser[] = [
      * e.g. "Mon", "Tue", "Thursday", etc.
      * etc.
      */
-    (message) => {
+    (message): ReminderMessageParserResult => {
         const time = 'on ([a-zA-Z]{3,9})';
         let result = execReminderMessage(message, time);
         let rawReminder: string;

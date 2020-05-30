@@ -16,13 +16,14 @@ import { getPrefix, splitMessage } from '../utils/bot';
  * an extracted command and arguments.
  */
 export interface BotCommandMessage {
-    message: Message
+    message: Message;
     command: string;
     args: string[];
 }
 
-export type ClientObservable = Observable<Client>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SubjectMap = Map<string, Subject<any>|Observable<any>>;
+export type ClientObservable = Observable<Client>;
 export type MessageObservable = Observable<Message>;
 export type BotCommandMessageObservable = Observable<BotCommandMessage>;
 export type ReactionAddObservable = Observable<[MessageReaction, User]>;

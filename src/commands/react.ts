@@ -55,11 +55,11 @@ const emojiAlphabet: EmojiAlphabet = {
 export default class React extends Command {
     // Reacting is increeeeeedibly slow
     // so we limit the amount of characters
-    private MAXLENGTH: number = 10;
+    private MAXLENGTH = 10;
 
     public readonly trigger: string = 'react';
 
-    public async exec(ctx: ExecContext) {
+    public async exec(ctx: ExecContext): Promise<void> {
         const { msg, args } = ctx;
 
         if (!args.length) {

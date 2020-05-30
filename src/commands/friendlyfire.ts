@@ -10,9 +10,9 @@ import { getMoment } from '../utils/moment';
 
 export default class FriendlyFire extends Command {
     public readonly trigger: string = 'friendly';
-    private table: string = 'friendlyfire';
+    private table = 'friendlyfire';
 
-    public async exec(ctx: ExecContext) {
+    public async exec(ctx: ExecContext): Promise<void> {
         const [subCommand, ...args] = ctx.args;
         const AUTHOR = 'me';
         const validSubCommands = [
