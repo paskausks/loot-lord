@@ -2,44 +2,48 @@ import {
     Message, GuildMember, Client, User,
 } from 'discord.js';
 
-export async function reactSuccess(sourceMsg: Message, reply?: string): Promise<void> {
-    await sourceMsg.react('✅');
+async function reactWithReply(
+    sourceMsg: Message,
+    reaction: string,
+    reply?: string,
+): Promise<void> {
+    await sourceMsg.react(reaction);
 
     if (reply) {
         sourceMsg.channel.send(reply);
     }
 }
 
-export async function reactFail(sourceMsg: Message, reply?: string): Promise<void> {
-    await sourceMsg.react('❌');
-
-    if (reply) {
-        sourceMsg.channel.send(reply);
-    }
+async function reactSuccess(sourceMsg: Message, reply?: string): Promise<void> {
+    reactWithReply(sourceMsg, '✅', reply);
 }
 
-export async function getGuildMember(
+async function reactFail(sourceMsg: Message, reply?: string): Promise<void> {
+    reactWithReply(sourceMsg, '❌', reply);
+}
+
+function getGuildMember(
     source: Message, userId: string,
-): Promise<GuildMember | null> {
+): GuildMember | null {
     return source.guild.members.find(
         (m: GuildMember) => m.user.id === userId,
     );
 }
 
-export async function getUser(
+function getUser(
     source: Client, userId: string,
-): Promise<User | null> {
+): User | null {
     return source.users.find(
         (user: User) => user.id === userId,
     );
 }
 
-export async function getNickname(
+async function getNickname(
     source: Message, userId: string,
 ): Promise<string> {
     let member;
     try {
-        member = await getGuildMember(source, userId);
+        member = getGuildMember(source, userId);
     } catch (e) {
         member = null;
     }
@@ -57,3 +61,12 @@ export async function getNickname(
 
     return member.nickname || member.user.username;
 }
+
+export {
+    reactWithReply,
+    reactFail,
+    reactSuccess,
+    getGuildMember,
+    getUser,
+    getNickname,
+};

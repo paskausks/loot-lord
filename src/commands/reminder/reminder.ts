@@ -91,17 +91,16 @@ export default class Reminder extends Command {
 
         // Notify users.
         all.forEach((reminder: ReminderModel) => {
-            getUser(ctx.discord, reminder.user_id).then((user) => {
-                if (!user) {
-                    return;
-                }
+            const user = getUser(ctx.discord, reminder.user_id);
+            if (!user) {
+                return;
+            }
 
-                user.send(`${reminder.reminder}\n`, {
-                    embed: {
-                        description: `_This is an automated reminder\nCreated with [this message](${reminder.reminder_url})._`,
-                        color: 2258916,
-                    },
-                });
+            user.send(`${reminder.reminder}\n`, {
+                embed: {
+                    description: `_This is an automated reminder\nCreated with [this message](${reminder.reminder_url})._`,
+                    color: 2258916,
+                },
             });
         });
     }
