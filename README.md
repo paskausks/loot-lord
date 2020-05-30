@@ -2,6 +2,8 @@
 
 ![Master](https://github.com/paskausks/loot-lord/workflows/Master/badge.svg?branch=master)
 
+[![Coverage Status](https://coveralls.io/repos/github/paskausks/loot-lord/badge.svg?branch=master)](https://coveralls.io/github/paskausks/loot-lord?branch=master)
+
 A discord bot of sorts.
 
 ## Requirements
