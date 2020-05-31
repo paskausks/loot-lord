@@ -16,19 +16,18 @@ type PluginInitDependencies = 'client' | 'knex';
 /**
  * An array of built-in plugins.
  */
-const systemPlugins: PluginArray = [
+export const systemPlugins: PluginArray = [
     Logger,
     Pulse,
     CommandDispatcher,
 ];
 
 /**
- * Initializes the built-in plugins together with the
- * supplied plugins.
+ * Initializes the supplied plugins.
  */
 export const initPlugins = (
     dependencies: Pick<PluginInitOptions, PluginInitDependencies>,
-    additional: PluginArray = [],
+    plugins: PluginArray = [],
 ): Plugin[] => {
     const { client } = dependencies;
     const initOptions: PluginInitOptions = {
@@ -40,7 +39,7 @@ export const initPlugins = (
         ...dependencies,
     };
 
-    return systemPlugins.concat(additional).map(
+    return plugins.map(
         (PluginCls) => PluginCls.create({
             ...dependencies,
             ...initOptions,

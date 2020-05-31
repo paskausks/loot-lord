@@ -1,4 +1,4 @@
 export {
     PluginInitOptions, PluginConstructor, default as Plugin,
 } from './plugin';
-export { initPlugins as default } from './registry';
+export { initPlugins as default, systemPlugins } from './registry';

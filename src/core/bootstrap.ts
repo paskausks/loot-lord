@@ -1,7 +1,7 @@
 import knex from 'knex';
 import Discord from 'discord.js';
 import commands from '../commands';
-import initPlugins, { PluginConstructor } from './plugins';
+import initPlugins, { PluginConstructor, systemPlugins } from './plugins';
 
 /**
  * Connect to the database,
@@ -24,7 +24,7 @@ async function bootstrap(plugins: PluginConstructor[] = []): Promise<Discord.Cli
     initPlugins({
         knex: cnx,
         client,
-    }, [...commands, ...plugins]);
+    }, [...systemPlugins, ...commands, ...plugins]);
 
     return client;
 }
