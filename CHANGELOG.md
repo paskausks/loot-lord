@@ -1,5 +1,8 @@
 # Changelog
 
+## [Unreleased]
+* Fixed: fixed where the dice roll command didn't work (e.g. `!roll d20`) and where "help" couldn't be the first of multiple choices (e.g. `!roll help foo bar`), because the help dialog would be shown instead.
+
 ## [v0.3.0]
 
 * Added: Quote system, using `!quote`.

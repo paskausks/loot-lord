@@ -21,11 +21,6 @@ export default class Roll extends Command {
         const firstArgInt = parseInt(firstArg, 10);
         const secondArgInt = parseInt(secondArg, 10);
 
-        if (firstArg === 'help') {
-            this.sendHelp(msg);
-            return;
-        }
-
         if (!args.length) {
             // Return a random number from 0-100.
             this.sendMessage(ctx, Roll.intRange().toString());
@@ -33,6 +28,11 @@ export default class Roll extends Command {
         }
 
         if (args.length === 1) {
+            if (firstArg === 'help') {
+                this.sendHelp(msg);
+                return;
+            }
+
             if (!Number.isNaN(firstArgInt)) {
                 // Get a number from 0 to the provided number
                 this.sendMessage(
@@ -42,17 +42,17 @@ export default class Roll extends Command {
                 return;
             }
 
-            reactFail(msg, 'if you are providing just 1 argument, it has to be a number!');
-            return;
-        }
+            const firstArgSliceInt = parseInt(firstArg.substring(1), 10);
+            if (!Number.isNaN(firstArgSliceInt) && firstArg[0].toLowerCase() === 'd') {
+                // Argument is a number prefixed with d, e.g. d6 - do a dice roll.
+                this.sendMessage(
+                    ctx,
+                    Roll.intRange(1, firstArgSliceInt + 1).toString(),
+                );
+                return;
+            }
 
-        const firstArgSliceInt = parseInt(firstArg.substring(1), 10);
-        if (args.length === 1 && !Number.isNaN(firstArgSliceInt) && firstArg[0].toLowerCase() === 'd') {
-            // Argument is a number prefixed with d, e.g. d6 - do a dice roll.
-            this.sendMessage(
-                ctx,
-                Roll.intRange(1, firstArgSliceInt + 1).toString(),
-            );
+            reactFail(msg, 'if you are providing just 1 argument, it has to be a number!');
             return;
         }
 
