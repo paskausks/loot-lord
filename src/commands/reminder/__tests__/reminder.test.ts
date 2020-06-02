@@ -1,12 +1,340 @@
 import moment from 'moment';
 import Reminder from '../reminder';
+import { reactFail, reactSuccess }  from '../../../utils/discord';
 
-describe('reminder', () => {
-    // Set a constant time for testing the parser
-    // so we can check with someMoment.isSame('')
-    const fromDate = new Date(2020, 0, 1, 13, 28, 14, 321); // a Wednesday
+jest.mock('../../../utils/discord', () => ({
+    reactFail: jest.fn(),
+    reactSuccess: jest.fn(),
+}));
 
-    describe('reminder#parseReminder', () => {
+function getFakeKnex(): any {
+    const knex: any = {
+        select: jest.fn(() => knex),
+        from: jest.fn(() => knex),
+        where: jest.fn(() => knex),
+        del: jest.fn(() => 1 /* return rows affected */),
+        orderBy: jest.fn(() => Promise.resolve([
+            // Return fake reminder
+            {
+                id: 'somenumericid',
+            },
+        ])),
+    };
+
+    return knex;
+}
+
+function getReminderConstructorOpts(): any {
+    const plugins: Map<string, any> = new Map();
+
+    // mock pulse plugin which reminder depends on.
+    plugins.set('pulse', {
+        subscribe: () => null,
+    });
+
+    return {
+        plugins,
+    }
+}
+
+describe('Reminder', () => {
+
+    beforeEach(() => {
+        (reactFail as jest.MockedFunction<typeof reactFail>).mockClear();
+        (reactSuccess as jest.MockedFunction<typeof reactSuccess>).mockClear();
+    });
+
+    afterAll(() => {
+        (reactFail as jest.MockedFunction<typeof reactFail>).mockRestore();
+        (reactSuccess as jest.MockedFunction<typeof reactSuccess>).mockRestore();
+    });
+
+    describe('Reminder.new', () => {
+        it('should register an observer to the pulse plugin', () => {
+            const opts = getReminderConstructorOpts();
+            const subscribeFn = jest.fn();
+            opts.plugins.get('pulse').subscribe = subscribeFn;
+
+            new Reminder(opts);
+
+            expect(subscribeFn).toBeCalled();
+        });
+    });
+
+    describe('Reminder#exec', () => {
+        test.each([
+            [[]],
+            [['help']],
+        ])(
+        'should return help with the args %p',
+        async (args: string[]) => {
+            const reminder = new Reminder(getReminderConstructorOpts());
+            const spy = jest.spyOn(reminder, 'sendHelp');
+            const message = {
+                msg: {
+                    channel: {
+                        send: () => null,
+                    },
+                },
+                args,
+            } as any;
+
+            reminder.exec(message);
+
+            expect(spy).toBeCalledWith(message.msg);
+        });
+
+        it('should inform the user if they have given an invalid sub-command', async () => {
+            const reminder = new Reminder(getReminderConstructorOpts());
+            const sendFn = jest.fn();
+            const message = {
+                msg: {
+                    channel: {
+                        send: sendFn,
+                    },
+                },
+                args: ['foobar']
+            } as any;
+
+            await reminder.exec(message);
+            expect(sendFn).toBeCalledWith('Invalid subcommand. Try: `add`, `rm`, `list`, `help`');
+        });
+
+        describe('reminder removal', () => {
+            const failMsg = 'Invalid reminder number. Check again with the `reminder list` command!';
+
+            it('should return an error if not an integer has been passed', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const message = {
+                    msg: {
+                        channel: {
+                            send: () => null,
+                        },
+                    },
+                    args: ['rm', 'foo'],
+                } as any;
+
+                await reminder.exec(message);
+                expect(reactFail).toBeCalledWith(message.msg, failMsg);
+            });
+
+            it('should return an error if the provided reminder does not exist', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const knex: any = getFakeKnex();
+                const message = {
+                    msg: {
+                        channel: {
+                            send: () => null,
+                        },
+                        author: {
+                            id: 'foo',
+                        },
+                    },
+                    args: ['rm', '99'],
+                    knex,
+                } as any;
+
+                await reminder.exec(message);
+
+                // Test reminder#getAll as well
+                expect(knex.select).toBeCalled();
+                expect(knex.from).toBeCalledWith('reminders');
+                expect(knex.where).toBeCalledWith('user_id', 'foo');
+                expect(knex.orderBy).toBeCalledWith('reminder_at', 'asc');
+
+                expect(reactFail).toBeCalledWith(message.msg, failMsg);
+            });
+
+            it('should notify the user if something went wrong', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const knex = getFakeKnex();
+                knex.del = () => 0; // return 0 rows affected on deletion
+                const message = {
+                    msg: {
+                        channel: {
+                            send: () => null,
+                        },
+                        author: {
+                            id: 'foo',
+                        },
+                    },
+                    args: ['rm', '1'], // Return the first and only fake reminder
+                    knex,
+                } as any;
+
+                await reminder.exec(message);
+                expect(reactFail).toBeCalledWith(message.msg, 'Something went wrong.');
+            });
+
+            it('should remove the given reminder', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const knex = getFakeKnex();
+                const message = {
+                    msg: {
+                        channel: {
+                            send: () => null,
+                        },
+                        author: {
+                            id: 'foo',
+                        },
+                    },
+                    args: ['rm', '1'], // Return the first and only fake reminder
+                    knex,
+                } as any;
+
+                await reminder.exec(message);
+
+                expect(knex.where).toHaveBeenLastCalledWith('id', 'somenumericid');
+                expect(knex.del).toBeCalled();
+                expect(knex.orderBy).toBeCalledWith('reminder_at', 'asc');
+
+                expect(reactSuccess).toBeCalledWith(message.msg);
+            });
+        });
+
+        describe('reminder addition', () => {
+            it('should return a message on incorrectly passed reminder syntax', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const message = {
+                    msg: {
+                        channel: {
+                            send: () => null,
+                        },
+                    },
+                    args: 'add It was a dark and stormy night'.split(' '),
+                } as any;
+
+                await reminder.exec(message);
+                expect(reactFail).toBeCalledWith(
+                    message.msg,
+                    'Your syntax is incorrect. Check the command help and try again!',
+                );
+            });
+
+            it('should return a message on a reminder message that is too long', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const message = {
+                    msg: {
+                        channel: {
+                            send: () => null,
+                        },
+                    },
+                    args: ['add', 'in', '1', 'minute'].concat(new Array(126).fill('a')),
+                } as any;
+
+                await reminder.exec(message);
+                expect(reactFail).toBeCalledWith(
+                    message.msg,
+                    'Your reminder is too long. It has 251 characters, '
+                    + 'but should not exceed 250!'
+                );
+            });
+
+            it('should insert the reminder into the database', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const insertFn = jest.fn();
+                const knex = jest.fn(() => ({
+                    insert: insertFn,
+                }));
+                const message = {
+                    msg: {
+                        channel: {
+                            send: () => null,
+                        },
+                        author: {
+                            id: 'reminderauthorid'
+                        },
+                        url: 'https://example.com/123',
+                    },
+                    knex,
+                    args: 'add run tests in 1 minute'.split(' '),
+                } as any;
+
+                await reminder.exec(message);
+
+                // Don't check the date time, just check the other args.
+                const insertArg = insertFn.mock.calls[0][0];
+                expect(knex).toBeCalledWith('reminders');
+                expect(insertArg.user_id).toBe('reminderauthorid');
+                expect(insertArg.reminder).toBe('run tests');
+                expect(insertArg.reminder_url).toBe('https://example.com/123');
+                expect(insertArg.reminder_at).not.toBeUndefined();
+                expect(
+                    (reactSuccess as jest.MockedFunction<typeof reactSuccess>
+                ).mock.calls[0][1]).toContain('Your reminder has been added! I\'ll notify you about it at');
+            });
+        });
+
+        describe('reminder listing', () => {
+            it('should tell the user if there are no reminders', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const knex = getFakeKnex();
+                const sendFn = jest.fn();
+                knex.orderBy = jest.fn(() => []);
+
+                const message = {
+                    msg: {
+                        channel: {
+                            send: sendFn,
+                        },
+                        author: {
+                            id: 'xxx',
+                        },
+                    },
+                    knex,
+                    args: ['list'],
+                } as any;
+
+                await reminder.exec(message);
+
+                expect(knex.where).toBeCalledWith('user_id', 'xxx');
+                expect(sendFn).toBeCalledWith('You currently don\'t have any reminders.');
+            });
+
+            it('should list the user\'s reminders', async () => {
+                const reminder = new Reminder(getReminderConstructorOpts());
+                const knex = getFakeKnex();
+                const sendFn = jest.fn();
+                const reminder_at = new Date().getTime();
+                knex.orderBy = jest.fn(() => [
+                    { reminder_at, reminder: 'walk dog' },
+                    { reminder_at, reminder: 'go to store' },
+                ]);
+
+                const message = {
+                    msg: {
+                        channel: {
+                            send: sendFn,
+                        },
+                        author: {
+                            id: 'xxx',
+                        },
+                    },
+                    knex,
+                    args: ['list'],
+                } as any;
+
+                await reminder.exec(message);
+
+                const sentEmbed = sendFn.mock.calls[0][0].embed;
+                expect(sentEmbed.title).toBe('Your reminders');
+                expect(sentEmbed.description).toBe('All times shown in UTC.\n\n');
+                expect(sentEmbed.fields[0].value).toBe('walk dog');
+                expect(sentEmbed.fields[1].value).toBe('go to store');
+
+                // Don't check the dates of the reminders, just check
+                // that they're there.
+                expect(typeof sentEmbed.fields[0].name).toBe('string');
+                expect(typeof sentEmbed.fields[1].name).toBe('string');
+            });
+        });
+    });
+
+    describe('Reminder#parseReminder', () => {
+        // Set a constant time for testing the parser
+        // so we can check with someMoment.isSame('')
+        const fromDate = new Date(2020, 0, 1, 13, 28, 14, 321); // a Wednesday
+
         test.each([
             // As of 2.12.0 when decimal values are passed for days and months,
             // they are rounded to the nearest integer.

@@ -168,7 +168,9 @@ export default class Reminder extends Command {
             return;
         }
 
-        const rowsAffected = await ctx.knex(this.table)
+        const rowsAffected = await ctx.knex
+            .select()
+            .from<ReminderModel>(this.table)
             .where('id', reminder.id)
             .del();
 
