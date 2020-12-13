@@ -14,7 +14,6 @@ import { getPrefix } from '../utils/bot';
 import { COMMAND_DISPATCHER_SUBJECT, CommandDispatcherMessage } from '../core/plugins/command-dispatcher/message';
 import { getMoment } from '../utils/moment';
 
-
 interface KeyMap {
     [key: string]: (message: Discord.Message) => string;
 }
@@ -153,7 +152,6 @@ export default class SimpleCommand extends Command {
                 await knex(this.table).insert({
                     command,
                     response,
-                    // eslint-disable-next-line @typescript-eslint/camelcase
                     created_by_id: msg.author.id,
                 });
             } catch (e) {

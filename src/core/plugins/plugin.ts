@@ -24,14 +24,6 @@ interface PluginInitOptions {
 }
 
 /**
- * An interface describing the plugin constructor
- */
-interface PluginConstructor {
-  new (options: PluginInitOptions): Plugin;
-  create (options: PluginInitOptions): Plugin;
-}
-
-/**
  * Main base class for plugins.
  */
 class Plugin {
@@ -73,6 +65,14 @@ class Plugin {
     static create(options: PluginInitOptions): Plugin {
         return new this(options);
     }
+}
+
+/**
+ * An interface describing the plugin constructor
+ */
+interface PluginConstructor {
+  new (options: PluginInitOptions): Plugin;
+  create (options: PluginInitOptions): Plugin;
 }
 
 export {

@@ -54,7 +54,7 @@ const parsers: ReminderMessageParser[] = [
      * Messages starting with "in"
      * e.g. "in 3 hours", "in 5 days", etc.
      */
-    (message, sourceDate): ReminderMessageParserResult => {
+    (message: string, sourceDate: moment.Moment): ReminderMessageParserResult => {
         const time = 'in (\\d+\\.?\\d*) ([a-zA-Z]+)';
         let result = execReminderMessage(message, time);
         let rawReminder: string;
@@ -75,13 +75,13 @@ const parsers: ReminderMessageParser[] = [
                 return null;
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [full, rawAmount, rawType, rawReminder] = result;
         }
 
         const reminder = rawReminder.trim();
         const amount = parseFloat(rawAmount);
         const unit = rawType;
-
 
         if (Number.isNaN(amount)) {
             throw new Error('Not a valid time amount!');
@@ -104,7 +104,7 @@ const parsers: ReminderMessageParser[] = [
      * e.g. "on January 1", "on March 4th", "on Jun 22", "on 1 January",
      * "on 3rd April", "on 14th of Nov" etc.
      */
-    (message, sourceDate): ReminderMessageParserResult => {
+    (message: string, sourceDate: moment.Moment): ReminderMessageParserResult => {
         const timeDefault = 'on ([a-zA-Z]{2,}) (\\d+)(st|nd|rd|th)?';
         const timeAlt = 'on (\\d+)(st|nd|rd|th)? (?:of )?([a-zA-Z]{3,})';
         let result = execReminderMessage(message, timeDefault);
@@ -144,6 +144,7 @@ const parsers: ReminderMessageParser[] = [
                     return null;
                 }
 
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 [full, rawDate, rawSuffix, rawMonth, rawReminder] = result;
             }
         }
@@ -183,7 +184,7 @@ const parsers: ReminderMessageParser[] = [
      * and "DD.MM" e.g. "12.03.2020", "12.4.2020", "1.03.20",
      * "14.02", "1.2" etc.
      */
-    (message, sourceDate): ReminderMessageParserResult => {
+    (message: string, sourceDate: moment.Moment): ReminderMessageParserResult => {
         const time = 'on (\\d{1,2}\\.\\d{1,2}(?:\\.\\d{4})?)\\.?';
         let result = execReminderMessage(message, time);
         let rawReminder: string;
@@ -202,6 +203,7 @@ const parsers: ReminderMessageParser[] = [
                 return null;
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [full, rawDate, rawReminder] = result;
         }
 
@@ -227,7 +229,7 @@ const parsers: ReminderMessageParser[] = [
      * e.g. "Mon", "Tue", "Thursday", etc.
      * etc.
      */
-    (message): ReminderMessageParserResult => {
+    (message: string): ReminderMessageParserResult => {
         const time = 'on ([a-zA-Z]{3,9})';
         let result = execReminderMessage(message, time);
         let rawReminder: string;
@@ -246,6 +248,7 @@ const parsers: ReminderMessageParser[] = [
                 return null;
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [full, rawDay, rawReminder] = result;
         }
 

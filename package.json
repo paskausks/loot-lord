@@ -7,21 +7,21 @@
   "repository": "github:paskausks/loot-lord",
   "devDependencies": {
     "@types/jest": "^25.2.3",
-    "@types/node": "^13.13.9",
+    "@types/node": "^13.13.36",
     "@types/signale": "^1.4.1",
-    "@typescript-eslint/eslint-plugin": "^2.34.0",
-    "@typescript-eslint/parser": "^2.34.0",
-    "concurrently": "^5.2.0",
-    "eslint": "^7.1.0",
-    "eslint-config-airbnb-base": "^14.1.0",
-    "eslint-import-resolver-node": "^0.3.3",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-jest": "^23.13.2",
-    "husky": "^4.2.5",
-    "jest": "^26.0.1",
-    "nodemon": "^2.0.4",
-    "ts-jest": "^26.1.0",
-    "typescript": "^3.9.3"
+    "@typescript-eslint/eslint-plugin": "^4.9.1",
+    "@typescript-eslint/parser": "^4.9.1",
+    "concurrently": "^5.3.0",
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-import-resolver-node": "^0.3.4",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^23.20.0",
+    "husky": "^4.3.5",
+    "jest": "^26.6.3",
+    "nodemon": "^2.0.6",
+    "ts-jest": "^26.4.4",
+    "typescript": "^4.1.3"
   },
   "scripts": {
     "build": "tsc && node dist/utils/write-build-info.js",
@@ -43,11 +43,11 @@
   "dependencies": {
     "discord.js": "^11.6.4",
     "dotenv": "^8.2.0",
-    "knex": "^0.20.15",
-    "moment": "^2.26.0",
-    "rxjs": "^6.5.5",
+    "knex": "^0.21.13",
+    "moment": "^2.29.1",
+    "rxjs": "^6.6.3",
     "signale": "^1.4.0",
-    "sqlite3": "^4.2.0"
+    "sqlite3": "^5.0.0"
   },
   "signale": {
     "displayLabel": false
