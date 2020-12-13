@@ -9,7 +9,7 @@ class Logger extends Plugin {
         super(options);
 
         // Log on connection
-        options.ready.subscribe((client) => signale.success(`Logged in as ${client.user.tag}!`));
+        options.ready.subscribe((client) => signale.success(`Logged in as ${client.user?.tag}!`));
 
         // Log on valid bot command
         options.commandMessages.subscribe(({ message, command, args }) => {

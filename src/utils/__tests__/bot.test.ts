@@ -5,7 +5,7 @@ import {
 } from '../bot';
 
 function getMessageInput() {
-    const collection: Collection<string, any> = new Collection();
+    const cache: Collection<string, any> = new Collection();
     const messages = [
         {
             content: '!cmd',
@@ -33,11 +33,11 @@ function getMessageInput() {
         },
     ];
 
-    messages.forEach((item, i) => collection.set(i.toString(), item));
+    messages.forEach((item, i) => cache.set(i.toString(), item));
 
     return {
         channel: {
-            messages: collection,
+            messages: { cache },
         }
     }
 }
@@ -76,7 +76,7 @@ describe('bot utils', () => {
     describe('getRegularMessages', () => {
         it('should return messages which aren\'t bot commands and which aren\t from the bot.', () => {
             const input = getMessageInput();
-            const result = input.channel.messages.array().slice(2);
+            const result = input.channel.messages.cache.array().slice(2);
             expect(getRegularMessages(input as any)).toEqual(result);
         })
     });

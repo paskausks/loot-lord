@@ -68,7 +68,7 @@ export default class FriendlyFire extends Command {
                 }
             }
 
-            const botId = msg.client.user.id;
+            const botId = msg.client.user?.id;
 
             if (killerId === botId || victimId === botId) {
                 fail(msg, 'Don\'t involve me in this');

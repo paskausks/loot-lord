@@ -24,16 +24,16 @@ async function reactFail(sourceMsg: Message, reply?: string): Promise<void> {
 
 function getGuildMember(
     source: Message, userId: string,
-): GuildMember | null {
-    return source.guild.members.find(
+): GuildMember | undefined {
+    return source.guild?.members.cache.find(
         (m: GuildMember) => m.user.id === userId,
     );
 }
 
 function getUser(
     source: Client, userId: string,
-): User | null {
-    return source.users.find(
+): User | undefined {
+    return source.users.cache.find(
         (user: User) => user.id === userId,
     );
 }
@@ -52,7 +52,7 @@ async function getNickname(
         // Has left the server or source is DM
         let user;
         try {
-            user = await source.client.fetchUser(userId);
+            user = await source.client.users.fetch(userId);
         } catch (e) {
             return 'Unknown';
         }

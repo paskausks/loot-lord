@@ -9,6 +9,7 @@
     "@types/jest": "^25.2.3",
     "@types/node": "^13.13.36",
     "@types/signale": "^1.4.1",
+    "@types/ws": "^7.4.0",
     "@typescript-eslint/eslint-plugin": "^4.9.1",
     "@typescript-eslint/parser": "^4.9.1",
     "concurrently": "^5.3.0",
@@ -41,7 +42,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "discord.js": "^11.6.4",
+    "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "knex": "^0.21.13",
     "moment": "^2.29.1",

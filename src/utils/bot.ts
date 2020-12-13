@@ -28,7 +28,7 @@ function splitMessage(msg: { content: string }): { command: string; args: string
  * commands and aren't from the bot itself.
  */
 function getRegularMessages(msg: Message): Message[] {
-    return msg.channel.messages.filter(
+    return msg.channel.messages.cache.filter(
         (message) => !message.content.startsWith(getPrefix()) && !message.author.bot,
     ).array();
 }

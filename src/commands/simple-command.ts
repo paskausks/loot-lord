@@ -24,6 +24,7 @@ const keywordKeyMap: KeyMap = {
     self: (message: Discord.Message) => `<@${message.author.id}>`,
     random: (message: Discord.Message) => {
         const users = message.client.users
+            .cache
             .array()
             .filter((user) => user.id !== '1') || [];
         if (!users.length) {
