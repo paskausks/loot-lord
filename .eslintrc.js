@@ -76,6 +76,7 @@ module.exports = {
                 'created_at',
                 'created_by_id',
                 'updated_at',
+                'ignorer_id',
             ],
         }],
     },

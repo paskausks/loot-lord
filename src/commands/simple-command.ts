@@ -2,7 +2,7 @@ import Knex from 'knex';
 import Discord from 'discord.js';
 import { Subject } from 'rxjs';
 import Command, { ExecContext } from './base';
-import { SimpleCommand as SimpleCommandModel } from '../models';
+import { IgnoredCommand, SimpleCommand as SimpleCommandModel } from '../models';
 import {
     reactSuccess as success,
     reactFail as fail,
@@ -39,6 +39,7 @@ const keywordKeyMap: KeyMap = {
 export default class SimpleCommand extends Command {
     public readonly trigger: string = 'command';
     private table = 'simplecommands';
+    private ignoredCommandTable = 'ignoredcommands';
 
     constructor(options: PluginInitOptions) {
         super(options);
@@ -51,7 +52,7 @@ export default class SimpleCommand extends Command {
 
     public async exec(ctx: ExecContext): Promise<void> {
         const [subCommand, ...args] = ctx.args;
-        const validSubCommands = ['`add`', '`rm`', '`info`', '`list`', 'help'].join(
+        const validSubCommands = ['`add`', '`rm`', '`info`', '`list`', 'ignore', 'unignore', 'help'].join(
             ', ',
         );
 
@@ -72,10 +73,12 @@ export default class SimpleCommand extends Command {
                 return;
             }
 
+            const ignored = (await this.getIgnored(ctx.knex)).map((c) => `\`${c.command}\``).join(', ');
+
             msg.channel.send(
                 `Currently saved commands: ${all
                     .map((cmd) => `\`${cmd.command}\``)
-                    .join(', ')}`,
+                    .join(', ')}\nIgnored commands: ${ignored}`,
             );
             break;
         }
@@ -117,6 +120,11 @@ export default class SimpleCommand extends Command {
 
             if (this.getCommands().some((cmd) => command === cmd)) {
                 fail(msg, 'This name is used by a built-in command.');
+                return;
+            }
+
+            if (await this.isIgnored(command, knex)) {
+                fail(msg, 'This name is in the ignore list.');
                 return;
             }
 
@@ -189,7 +197,35 @@ export default class SimpleCommand extends Command {
             }
 
             success(msg);
-            return;
+            break;
+        }
+        case 'ignore': {
+            const command = args[0];
+
+            if (await this.isIgnored(command, knex)) {
+                fail(
+                    msg,
+                    `The command '${command} is already in the ignore list.`,
+                );
+                return;
+            }
+
+            await knex(this.ignoredCommandTable).insert({
+                command,
+                ignorer_id: msg.author.id,
+            } as Pick<IgnoredCommand, 'command' | 'ignorer_id'>);
+
+            success(msg);
+            break;
+        }
+        case 'unignore': {
+            const command = args[0];
+            await knex(this.ignoredCommandTable)
+                .where('command', command)
+                .del();
+
+            success(msg);
+            break;
         }
         case 'help': {
             this.sendHelp(msg);
@@ -209,6 +245,12 @@ export default class SimpleCommand extends Command {
     private async handleCommandRequest(request: CommandDispatcherMessage): Promise<void> {
         // Try simple commands
         const { knex, command, message } = request;
+
+        // Check ignore list
+        if (await this.isIgnored(command, knex)) {
+            return;
+        }
+
         const simpleCommand = await this.getCommand(knex, command, ['command', 'response']);
 
         if (!simpleCommand) {
@@ -253,6 +295,14 @@ export default class SimpleCommand extends Command {
                     explanation: 'Shows some basic information about the command.',
                 },
                 {
+                    command: `${this.trigger} ignore <command>`,
+                    explanation: 'Adds a command to the ignore list',
+                },
+                {
+                    command: `${this.trigger} unignore <command>`,
+                    explanation: 'Removes a command from the ignore list',
+                },
+                {
                     command: `${this.trigger} list`,
                     explanation: 'List all saved commands.',
                 },
@@ -289,5 +339,17 @@ export default class SimpleCommand extends Command {
         return knex
             .select('command')
             .from<SimpleCommandModel>('simplecommands');
+    }
+
+    public async isIgnored(command: string, knex: Knex): Promise<boolean> {
+        return (await this.getIgnored(knex))
+            .map((row) => row.command)
+            .some((cmd) => command === cmd);
+    }
+
+    public async getIgnored(knex: Knex): Promise<Pick<IgnoredCommand, 'command'>[]> {
+        return knex
+            .select('command')
+            .from<SimpleCommandModel>(this.ignoredCommandTable);
     }
 }

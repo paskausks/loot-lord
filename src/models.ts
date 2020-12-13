@@ -37,3 +37,10 @@ export interface Quote {
     created_at: string;
     updated_at: string;
 }
+
+export interface IgnoredCommand {
+    command: string;
+    ignorer_id: string;
+    created_at: string;
+    updated_at: string;
+}
