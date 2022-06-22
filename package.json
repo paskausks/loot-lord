@@ -48,7 +48,7 @@
     "moment": "^2.29.1",
     "rxjs": "^6.6.3",
     "signale": "^1.4.0",
-    "sqlite3": "^5.0.0"
+    "sqlite3": "^5.0.3"
   },
   "signale": {
     "displayLabel": false
