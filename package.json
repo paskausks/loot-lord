@@ -44,7 +44,7 @@
   "dependencies": {
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
-    "knex": "^0.21.13",
+    "knex": "^2.4.0",
     "moment": "^2.29.1",
     "rxjs": "^6.6.3",
     "signale": "^1.4.0",
