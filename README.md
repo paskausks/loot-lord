@@ -7,7 +7,7 @@ A discord bot of sorts.
 
 ## Requirements
 
-* Node.js 12+
+* Node.js v22+
 
 ## Setup
 
