@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 import { Message, MessageReaction, User } from 'discord.js';
 import Command, { ExecContext } from './base';
 import { PluginInitOptions } from '../core/plugins';

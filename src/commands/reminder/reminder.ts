@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 import moment from 'moment';
 import { Subject } from 'rxjs';
 import { Message } from 'discord.js';

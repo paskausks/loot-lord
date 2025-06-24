@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 import Discord from 'discord.js';
 import { Subject } from 'rxjs';
 import Command, { ExecContext } from './base';

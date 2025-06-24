@@ -1,8 +1,8 @@
-import knex from 'knex';
+import { Knex } from 'knex';
 import { Client } from 'discord.js';
 
 export interface PulseMessage {
-    knex: knex;
+    knex: Knex;
     discord: Client;
 }
 

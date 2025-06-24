@@ -1,6 +1,6 @@
 import { Message } from 'discord.js';
 import { Subject } from 'rxjs';
-import * as Knex from 'knex';
+import { Knex } from 'knex';
 import { Plugin, PluginInitOptions } from '../core/plugins';
 
 export const COMMAND_PLUGIN_PREFIX = 'commands/';
