@@ -11,7 +11,7 @@ import initPlugins, { PluginConstructor, systemPlugins } from './plugins';
 async function bootstrap(plugins: PluginConstructor[] = []): Promise<Discord.Client> {
     // Establish database connection
     const cnx = knex({
-        client: 'sqlite3',
+        client: 'better-sqlite3',
         connection: {
             filename: './data.sqlite3',
             timezone: 'UTC',
