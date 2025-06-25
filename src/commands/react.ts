@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { Message, TextChannel } from 'discord.js';
 import Command, { ExecContext } from './base';
 import {
     reactFail as fail,
@@ -94,7 +94,7 @@ export default class React extends Command {
     }
 
     public async sendHelp(msg: Message): Promise<void> {
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: this.trigger,
             description: 'Writing a word with reactions, wow, so amaze!',
             commands: [{

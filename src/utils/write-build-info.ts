@@ -35,6 +35,5 @@ fs.writeFileSync(
 );
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
     BuildInfo,
 };

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import moment from 'moment';
-import { Message } from 'discord.js';
+import { Message, TextChannel } from 'discord.js';
 import { getNickname } from '../utils/discord';
 import Command, { ExecContext } from './base';
 import { BuildInfo } from '../utils/write-build-info';
@@ -22,7 +22,7 @@ export default class About extends Command {
         try {
             packageInfo = JSON.parse(
                 fs.readFileSync(path.join(__dirname, '..', '..', 'package.json')).toString(),
-            );
+            ) as PackageJson;
         } catch {
             this.log('package.json missing!', 'debug');
         }
@@ -43,7 +43,7 @@ export default class About extends Command {
             .map((nick: string) => `_${nick}_`)
             .join(', ');
 
-        ctx.msg.channel.send(
+        (ctx.msg.channel as TextChannel).send(
             `Loot Lord v${packageInfo.version}.\n\n`
             + `Built on ${buildTime.utc().format('lll')}.\n`
             + `Developed by _${author}_ with contributions from ${contribs}.\n`
@@ -52,7 +52,7 @@ export default class About extends Command {
     }
 
     public async sendHelp(msg: Message): Promise<void> {
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: this.trigger,
             description: 'Displays some info about the bot and it\'s authors.',
         }));

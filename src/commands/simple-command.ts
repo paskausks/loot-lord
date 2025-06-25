@@ -1,5 +1,5 @@
-import Knex from 'knex';
-import Discord from 'discord.js';
+import { Knex } from 'knex';
+import Discord, { TextChannel } from 'discord.js';
 import { Subject } from 'rxjs';
 import Command, { ExecContext } from './base';
 import { IgnoredCommand, SimpleCommand as SimpleCommandModel } from '../models';
@@ -23,13 +23,15 @@ const keywordKeyMap: KeyMap = {
     percentage: () => `${Math.round(Math.random() * 100)}%`,
     self: (message: Discord.Message) => `<@${message.author.id}>`,
     random: (message: Discord.Message) => {
-        const users = message.client.users
+        const users = Array.from(message.client.users
             .cache
-            .array()
+            .values())
             .filter((user) => user.id !== '1') || [];
+
         if (!users.length) {
             return '';
         }
+
         const index = Math.floor(Math.random() * users.length);
         return `<@${users[index].id}>`;
     },
@@ -63,19 +65,21 @@ export default class SimpleCommand extends Command {
             return;
         }
 
+
+        const textChannel = msg.channel as TextChannel;
         // FIXME: Extract into separate methods to save indent.
         switch (subCommand) {
         case 'list': {
             const all = await this.getAll(ctx.knex);
 
             if (!all.length) {
-                msg.channel.send('No custom commands created.');
+                textChannel.send('No custom commands created.');
                 return;
             }
 
             const ignored = (await this.getIgnored(ctx.knex)).map((c) => `\`${c.command}\``).join(', ');
 
-            msg.channel.send(
+            textChannel.send(
                 `Currently saved commands: ${all
                     .map((cmd) => `\`${cmd.command}\``)
                     .join(', ')}\nIgnored commands: ${ignored}`,
@@ -96,11 +100,11 @@ export default class SimpleCommand extends Command {
             ]);
 
             if (!command) {
-                msg.channel.send('This command does not exist.');
+                textChannel.send('This command does not exist.');
                 return;
             }
 
-            msg.channel.send(
+            textChannel.send(
                 `Command '${commandQuery}' created at ${getMoment(
                     command.created_at,
                 ).format('lll')}`
@@ -163,7 +167,9 @@ export default class SimpleCommand extends Command {
                     response,
                     created_by_id: msg.author.id,
                 });
-            } catch (e) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } catch (e: any) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 if (e.errno && e.errno === 19) {
                     fail(msg, `The command '${command}' is already taken!`);
                     return;
@@ -232,7 +238,7 @@ export default class SimpleCommand extends Command {
             break;
         }
         default:
-            msg.channel.send(
+            textChannel.send(
                 `Invalid subcommand. Try: ${validSubCommands}`,
             );
         }
@@ -269,13 +275,13 @@ export default class SimpleCommand extends Command {
             return;
         }
 
-        await message.channel.send(
+        await (message.channel as TextChannel).send(
             this.parseCommand(simpleCommand, message).response,
         );
     }
 
     public async sendHelp(msg: Discord.Message): Promise<void> {
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: this.trigger,
             description: 'Create and manage custom commands with simple responses.',
             commands: [
@@ -319,7 +325,7 @@ export default class SimpleCommand extends Command {
             .select(...fields)
             .from<SimpleCommand>('simplecommands')
             .where('command', name)
-            .limit(1);
+            .limit(1) as SimpleCommandModel[];
         return result;
     }
 

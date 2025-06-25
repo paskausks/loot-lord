@@ -7,7 +7,7 @@ A discord bot of sorts.
 
 ## Requirements
 
-* Node.js 12+
+* Node.js v22+
 
 ## Setup
 
@@ -23,7 +23,7 @@ Perform migrations.
 npm run migrate
 ```
 
-Create a [discord bot account](https://discordapp.com/developers/applications), create a bot user for the application, get it's token, set it in _.env.sample_ file and save it as _.env_.
+Create a [discord bot account](https://discordapp.com/developers/applications), create a bot user for the application, make sure it has all Privileged Gateway Intents enabled. Get it's token, set it in _.env.sample_ file and save it as _.env_.
 
 Invite the bot into a server of your choosing:
 

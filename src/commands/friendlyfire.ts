@@ -1,4 +1,4 @@
-import { Message, MessageMentions } from 'discord.js';
+import { Message, MessageMentions, TextChannel } from 'discord.js';
 import Command, { ExecContext } from './base';
 import {
     reactSuccess as success,
@@ -7,6 +7,7 @@ import {
 } from '../utils/discord';
 import { buildHelp } from '../utils/help';
 import { getMoment } from '../utils/moment';
+import { FriendlyFire as FriendlyFireModel } from '../models';
 
 export default class FriendlyFire extends Command {
     public readonly trigger: string = 'friendly';
@@ -27,6 +28,8 @@ export default class FriendlyFire extends Command {
             return;
         }
 
+        const textChannel = msg.channel as TextChannel;
+
         switch (subCommand) {
         case 'add': {
             const [killer, victim] = args;
@@ -41,8 +44,8 @@ export default class FriendlyFire extends Command {
                 return;
             }
 
-            const mentions = msg.mentions.users.array();
-            const pattern = MessageMentions.USERS_PATTERN;
+            const mentions = Array.from(msg.mentions.users.values());
+            const pattern = MessageMentions.UsersPattern;
 
             let killerId: string = msg.author.id;
             if (killer !== AUTHOR) {
@@ -96,7 +99,7 @@ export default class FriendlyFire extends Command {
                 .orderBy('kill_count', 'desc');
 
             if (!topKillers.length) {
-                msg.channel.send('No data.');
+                textChannel.send('No data.');
                 return;
             }
 
@@ -109,14 +112,14 @@ export default class FriendlyFire extends Command {
             const [latest] = await knex(this.table)
                 .select('killer_id', 'victim_id', 'created_at')
                 .limit(1)
-                .orderBy('created_at', 'desc');
+                .orderBy('created_at', 'desc') as FriendlyFireModel[];
 
             const [nemesis] = await knex(this.table)
                 .select('killer_id', 'victim_id')
                 .count('* as occurence_count')
                 .limit(1)
                 .groupBy('killer_id', 'victim_id')
-                .orderBy('occurence_count', 'desc');
+                .orderBy('occurence_count', 'desc') as unknown as (FriendlyFireModel & {occurence_count: number})[];
 
             const [
                 latestKiller,
@@ -128,8 +131,8 @@ export default class FriendlyFire extends Command {
                 latest.victim_id,
                 nemesis.killer_id,
                 nemesis.victim_id,
-            ].map((v) => getNickname(msg, v)));
-            const latestTimesince = getMoment(latest.created_at).fromNow();
+            ].map((v: string) => getNickname(msg, v)));
+            const latestTimesince = getMoment(latest.created_at as string).fromNow();
             let killerList = '';
             let i = 0;
             for (i; i < topKillers.length; i += 1) {
@@ -143,7 +146,7 @@ export default class FriendlyFire extends Command {
                 victimList += `\n${i + 1}. ${await getNickname(msg, row.victim_id.toString())} (${row.death_count} deaths)`;
             }
 
-            msg.channel.send(
+            textChannel.send(
                 'Here\'s what\'s up.\n\n'
                 + '**Top killers**:'
                 + `${killerList}\n\n`
@@ -157,14 +160,14 @@ export default class FriendlyFire extends Command {
             break;
         }
         default:
-            msg.channel.send(
+            textChannel.send(
                 `Invalid subcommand. Try: ${validSubCommands}`,
             );
         }
     }
 
     public async sendHelp(msg: Message): Promise<void> {
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: this.trigger,
             description: 'Keeps track of accidental friend murder 🙃\n',
             commands: [

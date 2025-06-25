@@ -20,7 +20,7 @@ describe('plugin registry', () => {
                 knex: knex as any,
             }, [TestPlugin]);
 
-            expect(TestPlugin.create).toBeCalled();
+            expect(TestPlugin.create).toHaveBeenCalled();
             expect(plugin instanceof TestPlugin).toBeTruthy();
         });
     });

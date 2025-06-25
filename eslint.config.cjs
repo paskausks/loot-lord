@@ -1,26 +1,29 @@
-module.exports = {
-    env: {
-        es6: true,
-        node: true,
+const { defineConfig } = require('eslint/config');
+const globals = require('globals');
+const eslint = require('@eslint/js');
+const tseslint = require('typescript-eslint');
+
+module.exports = defineConfig([eslint.configs.recommended, tseslint.configs.recommendedTypeChecked, {
+    files: ["**/*.ts"],
+    languageOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'commonjs',
+        globals: {
+            ...globals.node,
+            Atomics: 'readonly',
+            SharedArrayBuffer: 'readonly',
+        },
+        parser: require('@typescript-eslint/parser'),
+        parserOptions: {
+            projectService: true,
+            tsconfigRootDir: __dirname,
+        },
     },
-    extends: [
-        'airbnb-base',
-        'plugin:jest/recommended',
-        'plugin:@typescript-eslint/recommended',
-    ],
-    globals: {
-        Atomics: 'readonly',
-        SharedArrayBuffer: 'readonly',
+    plugins: {
+        'typescript-eslint': tseslint,
+        'jest': require('eslint-plugin-jest'),
+        'import': require('eslint-plugin-import'),
     },
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-        ecmaVersion: 2018,
-        sourceType: 'module',
-    },
-    plugins: [
-        '@typescript-eslint',
-        'jest',
-    ],
     settings: {
         'import/resolver': {
             node: {
@@ -35,6 +38,12 @@ module.exports = {
         'lines-between-class-members': 'off',
         'class-methods-use-this': 'off',
         '@typescript-eslint/explicit-function-return-type': 'error',
+
+        // FIXME(rp): these should actually be eventually addressed
+        '@typescript-eslint/no-floating-promises': 'off',
+        '@typescript-eslint/no-misused-promises': 'off',
+        '@typescript-eslint/require-await': 'off',
+
         'import/no-unresolved': [2, { commonjs: true, amd: true }],
         'import/exports-last': ['error'],
         'import/extensions': ['error', 'ignorePackages',
@@ -50,20 +59,21 @@ module.exports = {
         // Ignore unused vars prefixed with an underscore.
         'no-unused-vars': 'off',
         '@typescript-eslint/no-unused-vars': ['error', {
-            argsIgnorePattern: '^_',
-            varsIgnorePattern: '^_',
+            "args": "all",
+            "argsIgnorePattern": "^_",
+            "caughtErrors": "all",
+            "caughtErrorsIgnorePattern": "^_",
+            "destructuredArrayIgnorePattern": "^_",
+            "varsIgnorePattern": "^_",
+            "ignoreRestSiblings": true
         }],
         'no-empty-function': 'off',
 
-        // Weird stuff with missing and required semicolons
-        // on default exports
-        // https://github.com/typescript-eslint/typescript-eslint/issues/123
-        semi: 'off',
-        '@typescript-eslint/semi': ['error'],
+        semi: 'error',
 
         camelcase: ['error', {
             allow: [
-            // Database field whitelist
+                // Database field whitelist
                 'user_id',
                 'reminder_at',
                 'reminder_url',
@@ -80,4 +90,8 @@ module.exports = {
             ],
         }],
     },
-};
+    ignores: [
+        'dist/*/*.js',
+        '__tests__',
+    ],
+}]);

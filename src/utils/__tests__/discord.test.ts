@@ -12,7 +12,7 @@ describe('discord utils', () => {
             const reaction = '✅';
             await reactWithReply(sourceMsg as any, reaction);
 
-            expect(sourceMsg.react).toBeCalledWith(reaction);
+            expect(sourceMsg.react).toHaveBeenCalledWith(reaction);
         });
 
         it('should react with a success checkmark on the provided message and send a reply', async () => {
@@ -27,8 +27,8 @@ describe('discord utils', () => {
             const text = 'oh hi mark';
             await reactWithReply(sourceMsg as any, reaction, text);
 
-            expect(sourceMsg.react).toBeCalledWith(reaction);
-            expect(sourceMsg.channel.send).toBeCalledWith(text);
+            expect(sourceMsg.react).toHaveBeenCalledWith(reaction);
+            expect(sourceMsg.channel.send).toHaveBeenCalledWith(text);
         });
     });
 
@@ -120,7 +120,7 @@ describe('discord utils', () => {
                     users: { fetch: fetchUser }
                  },
             } as any, id)).toBe(username);
-            expect(fetchUser).toBeCalledWith(id);
+            expect(fetchUser).toHaveBeenCalledWith(id);
         });
 
         it('should return "Unknown" if an error occurs fetching the user', async () => {
@@ -135,7 +135,7 @@ describe('discord utils', () => {
                     users: { fetch: fetchUser }
                  },
             } as any, 'xxx')).toBe('Unknown');
-            expect(fetchUser).toBeCalled();
+            expect(fetchUser).toHaveBeenCalled();
         });
     });
 });

@@ -1,4 +1,4 @@
-import knex from 'knex';
+import { Knex } from 'knex';
 import { Client } from 'discord.js';
 import { Subject } from 'rxjs';
 import {
@@ -14,7 +14,7 @@ import LoggerMessage, { LOGGER_SUBJECT_KEY, levels } from './logger/message'; //
  * Initialization options for a plugin
  */
 interface PluginInitOptions {
-    knex: knex;
+    knex: Knex;
     client: Client;
     ready: ClientObservable;
     allMessages: MessageObservable;

@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { Message, TextChannel } from 'discord.js';
 import Command, { ExecContext } from './base';
 import { getPrefix } from '../utils/bot';
 import { reactFail } from '../utils/discord';
@@ -70,7 +70,7 @@ export default class Roll extends Command {
     }
 
     private sendMessage(ctx: ExecContext, message: string): void {
-        ctx.msg.channel.send(`🎲 **${message}** 🎲`);
+        (ctx.msg.channel as TextChannel).send(`🎲 **${message}** 🎲`);
     }
 
     /**
@@ -91,7 +91,7 @@ export default class Roll extends Command {
 
     public async sendHelp(msg: Message): Promise<void> {
         const prefix = getPrefix();
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: this.trigger,
             description: 'Virtual dice.',
             commands: [

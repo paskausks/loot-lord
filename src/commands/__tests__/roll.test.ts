@@ -46,7 +46,7 @@ describe('Roll', () => {
             };
 
             await roll.exec(ctx as any);
-            expect(roll.sendHelp).toBeCalledWith(ctx.msg);
+            expect(roll.sendHelp).toHaveBeenCalledWith(ctx.msg);
         });
 
         it('should just send a reaction and a reply if a single non-numeric argument has been provided', async () => {
@@ -64,8 +64,8 @@ describe('Roll', () => {
             };
 
             await roll.exec(ctx as any);
-            expect(reactFn).toBeCalledWith('❌');
-            expect(sendFn).toBeCalledWith('if you are providing just 1 argument, it has to be a number!');
+            expect(reactFn).toHaveBeenCalledWith('❌');
+            expect(sendFn).toHaveBeenCalledWith('if you are providing just 1 argument, it has to be a number!');
         });
 
         test.each([
@@ -87,7 +87,7 @@ describe('Roll', () => {
                 };
 
                 await roll.exec(ctx as any);
-                expect(Roll.intRange).toBeCalledWith(...intRangeArgs);
+                expect(Roll.intRange).toHaveBeenCalledWith(...intRangeArgs);
             }
         );
 

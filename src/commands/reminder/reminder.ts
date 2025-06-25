@@ -1,7 +1,7 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 import moment from 'moment';
 import { Subject } from 'rxjs';
-import { Message } from 'discord.js';
+import { Message, TextChannel } from 'discord.js';
 import Command, { ExecContext } from '../base';
 import {
     reactSuccess as success,
@@ -66,7 +66,7 @@ export default class Reminder extends Command {
             break;
         }
         default:
-            msg.channel.send(
+            (msg.channel as TextChannel).send(
                 `Invalid subcommand. Try: ${validSubCommands}`,
             );
         }
@@ -96,11 +96,12 @@ export default class Reminder extends Command {
                 return;
             }
 
-            user.send(`${reminder.reminder}\n`, {
-                embed: {
+            user.send({
+                content: `${reminder.reminder}\n`,
+                embeds: [{
                     description: `_This is an automated reminder\nCreated with [this message](${reminder.reminder_url})._`,
                     color: 2258916,
-                },
+                }],
             });
         });
     }
@@ -186,7 +187,7 @@ export default class Reminder extends Command {
         const all = await this.getAll(ctx.knex, ctx.msg.author.id);
 
         if (!all.length) {
-            ctx.msg.channel.send('You currently don\'t have any reminders.');
+            (ctx.msg.channel as TextChannel).send('You currently don\'t have any reminders.');
             return;
         }
 
@@ -198,12 +199,12 @@ export default class Reminder extends Command {
             };
         });
 
-        ctx.msg.channel.send({
-            embed: {
+        (ctx.msg.channel as TextChannel).send({
+            embeds: [{
                 title: 'Your reminders',
                 description: 'All times shown in UTC.\n\n',
                 fields,
-            },
+            }],
         });
     }
 
@@ -225,7 +226,7 @@ export default class Reminder extends Command {
 
     public async sendHelp(msg: Message): Promise<void> {
         const prefix = getPrefix();
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: this.trigger,
             description: 'Manage personal reminders.',
             commands: [

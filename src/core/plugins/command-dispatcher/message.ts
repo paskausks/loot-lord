@@ -1,4 +1,4 @@
-import * as Knex from 'knex';
+import { Knex } from 'knex';
 import { Message } from 'discord.js';
 import { COMMAND_PLUGIN_PREFIX } from '../../../commands/base';
 
