@@ -31,8 +31,8 @@ export type ReactionAddObservable = Observable<[MessageReaction, User]>;
 export const ready = (client: Client): ClientObservable => fromEvent(client, Events.ClientReady).pipe(
     map(() => client),
 );
-export const rawMessage = (client: Client): MessageObservable => fromEvent(client, Events.MessageCreate);
-export const reactionAdd = (client: Client): ReactionAddObservable => fromEvent(client, Events.MessageReactionAdd);
+export const rawMessage = (client: Client): MessageObservable => fromEvent(client, Events.MessageCreate) as MessageObservable;
+export const reactionAdd = (client: Client): ReactionAddObservable => fromEvent(client, Events.MessageReactionAdd) as ReactionAddObservable;
 
 /**
  * An observable which broadcasts messages which could be
