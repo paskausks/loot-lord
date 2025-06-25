@@ -32,7 +32,7 @@ describe('Uptime', () => {
                 }
             } as any);
 
-            expect(buildHelp).toBeCalledWith({
+            expect(buildHelp).toHaveBeenCalledWith({
                 title: 'uptime',
                 description: 'Shows how long the bot has been running uninterrupted.',
             });

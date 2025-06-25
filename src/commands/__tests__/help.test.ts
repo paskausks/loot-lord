@@ -36,7 +36,7 @@ describe('Help', () => {
             jest.spyOn(help, 'sendHelp');
             await help.exec({ args: [], msg } as any);
 
-            expect(help.sendHelp).toBeCalledWith(msg);
+            expect(help.sendHelp).toHaveBeenCalledWith(msg);
         });
 
         it('should return a message if help is not available for a command', async () => {
@@ -45,7 +45,7 @@ describe('Help', () => {
 
             await help.exec({ args: ['foobar'] } as any);
 
-            expect(reactFail).toBeCalledWith(
+            expect(reactFail).toHaveBeenCalledWith(
                 undefined,
                 'The command "foobar" could not be found or help for it is not available!',
             )
@@ -64,7 +64,7 @@ describe('Help', () => {
             const help = new Help({ plugins } as any);
             await help.exec({ args: [command], msg} as any);
 
-            expect(commandSubject.next).toBeCalledWith(msg);
+            expect(commandSubject.next).toHaveBeenCalledWith(msg);
         });
     });
 
@@ -85,7 +85,7 @@ describe('Help', () => {
 
             await help.sendHelp(msg);
 
-            expect(buildHelp).toBeCalledWith({
+            expect(buildHelp).toHaveBeenCalledWith({
                 title: 'Loot Lord help',
                 description: 'To get help for a command, type:\n`!help <somecommand>`',
                 additional: [{

@@ -44,7 +44,7 @@ describe('command base', () => {
                 const command = new FakeCommand({} as any);
                 await command.useSendHelp(message);
 
-                expect(sendFn).toBeCalledWith('Help not available!');
+                expect(sendFn).toHaveBeenCalledWith('Help not available!');
             });
         });
 

@@ -57,7 +57,7 @@ describe('Reminder', () => {
 
             new Reminder(opts);
 
-            expect(subscribeFn).toBeCalled();
+            expect(subscribeFn).toHaveBeenCalled();
         });
     });
 
@@ -81,7 +81,7 @@ describe('Reminder', () => {
 
             reminder.exec(message);
 
-            expect(spy).toBeCalledWith(message.msg);
+            expect(spy).toHaveBeenCalledWith(message.msg);
         });
 
         it('should inform the user if they have given an invalid sub-command', async () => {
@@ -97,7 +97,7 @@ describe('Reminder', () => {
             } as any;
 
             await reminder.exec(message);
-            expect(sendFn).toBeCalledWith('Invalid subcommand. Try: `add`, `rm`, `list`, `help`');
+            expect(sendFn).toHaveBeenCalledWith('Invalid subcommand. Try: `add`, `rm`, `list`, `help`');
         });
 
         describe('reminder removal', () => {
@@ -115,7 +115,7 @@ describe('Reminder', () => {
                 } as any;
 
                 await reminder.exec(message);
-                expect(reactFail).toBeCalledWith(message.msg, failMsg);
+                expect(reactFail).toHaveBeenCalledWith(message.msg, failMsg);
             });
 
             it('should return an error if the provided reminder does not exist', async () => {
@@ -137,12 +137,12 @@ describe('Reminder', () => {
                 await reminder.exec(message);
 
                 // Test reminder#getAll as well
-                expect(knex.select).toBeCalled();
-                expect(knex.from).toBeCalledWith('reminders');
-                expect(knex.where).toBeCalledWith('user_id', 'foo');
-                expect(knex.orderBy).toBeCalledWith('reminder_at', 'asc');
+                expect(knex.select).toHaveBeenCalled();
+                expect(knex.from).toHaveBeenCalledWith('reminders');
+                expect(knex.where).toHaveBeenCalledWith('user_id', 'foo');
+                expect(knex.orderBy).toHaveBeenCalledWith('reminder_at', 'asc');
 
-                expect(reactFail).toBeCalledWith(message.msg, failMsg);
+                expect(reactFail).toHaveBeenCalledWith(message.msg, failMsg);
             });
 
             it('should notify the user if something went wrong', async () => {
@@ -163,7 +163,7 @@ describe('Reminder', () => {
                 } as any;
 
                 await reminder.exec(message);
-                expect(reactFail).toBeCalledWith(message.msg, 'Something went wrong.');
+                expect(reactFail).toHaveBeenCalledWith(message.msg, 'Something went wrong.');
             });
 
             it('should remove the given reminder', async () => {
@@ -185,10 +185,10 @@ describe('Reminder', () => {
                 await reminder.exec(message);
 
                 expect(knex.where).toHaveBeenLastCalledWith('id', 'somenumericid');
-                expect(knex.del).toBeCalled();
-                expect(knex.orderBy).toBeCalledWith('reminder_at', 'asc');
+                expect(knex.del).toHaveBeenCalled();
+                expect(knex.orderBy).toHaveBeenCalledWith('reminder_at', 'asc');
 
-                expect(reactSuccess).toBeCalledWith(message.msg);
+                expect(reactSuccess).toHaveBeenCalledWith(message.msg);
             });
         });
 
@@ -205,7 +205,7 @@ describe('Reminder', () => {
                 } as any;
 
                 await reminder.exec(message);
-                expect(reactFail).toBeCalledWith(
+                expect(reactFail).toHaveBeenCalledWith(
                     message.msg,
                     'Your syntax is incorrect. Check the command help and try again!',
                 );
@@ -223,7 +223,7 @@ describe('Reminder', () => {
                 } as any;
 
                 await reminder.exec(message);
-                expect(reactFail).toBeCalledWith(
+                expect(reactFail).toHaveBeenCalledWith(
                     message.msg,
                     'Your reminder is too long. It has 251 characters, '
                     + 'but should not exceed 250!'
@@ -254,7 +254,7 @@ describe('Reminder', () => {
 
                 // Don't check the date time, just check the other args.
                 const insertArg = insertFn.mock.calls[0][0];
-                expect(knex).toBeCalledWith('reminders');
+                expect(knex).toHaveBeenCalledWith('reminders');
                 expect(insertArg.user_id).toBe('reminderauthorid');
                 expect(insertArg.reminder).toBe('run tests');
                 expect(insertArg.reminder_url).toBe('https://example.com/123');
@@ -287,8 +287,8 @@ describe('Reminder', () => {
 
                 await reminder.exec(message);
 
-                expect(knex.where).toBeCalledWith('user_id', 'xxx');
-                expect(sendFn).toBeCalledWith('You currently don\'t have any reminders.');
+                expect(knex.where).toHaveBeenCalledWith('user_id', 'xxx');
+                expect(sendFn).toHaveBeenCalledWith('You currently don\'t have any reminders.');
             });
 
             it('should list the user\'s reminders', async () => {
@@ -400,6 +400,12 @@ describe('Reminder', () => {
             }
 
             expect(result.reminder).toBe(expectedMessage);
+
+            // tests should not depend on the year
+            // (this might be breaking other tests)
+            result.dateTime.year(2020);
+            expectedTime.setFullYear(2020);
+
             expect(result.dateTime.isSame(expectedTime)).toBe(true);
         });
 

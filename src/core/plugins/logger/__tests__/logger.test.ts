@@ -27,12 +27,12 @@ describe('Logger', () => {
         } as any;
 
         new Logger(options);
-        expect(subscribe).toBeCalledTimes(2);
+        expect(subscribe).toHaveBeenCalledTimes(2);
 
         // call the next handler of the ready observable
         // and check if signale has been called
         subscribe.mock.calls[0][0]({ user: { tag: 'fakebot#123' }});
-        expect(success).toBeCalledWith('Logged in as fakebot#123!');
+        expect(success).toHaveBeenCalledWith('Logged in as fakebot#123!');
     });
 
     test.each([
@@ -73,7 +73,7 @@ describe('Logger', () => {
                 args: ['one', 'two'],
             });
 
-            expect(info).toBeCalledWith(expected);
+            expect(info).toHaveBeenCalledWith(expected);
         }
     );
 
@@ -98,7 +98,7 @@ describe('Logger', () => {
 
             const loggerSubect: Subject<LoggerMessage> = plugins.get('logger');
             loggerSubect.next({ message, level: level as DefaultMethods });
-            expect(mockedSignaleFunc).toBeCalledWith(message);
+            expect(mockedSignaleFunc).toHaveBeenCalledWith(message);
         },
     );
 });
