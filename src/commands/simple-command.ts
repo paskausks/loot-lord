@@ -163,7 +163,7 @@ export default class SimpleCommand extends Command {
                     response,
                     created_by_id: msg.author.id,
                 });
-            } catch (e) {
+            } catch (e: any) {
                 if (e.errno && e.errno === 19) {
                     fail(msg, `The command '${command}' is already taken!`);
                     return;
