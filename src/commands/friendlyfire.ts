@@ -1,4 +1,4 @@
-import { Message, MessageMentions } from 'discord.js';
+import { Message, MessageMentions, TextChannel } from 'discord.js';
 import Command, { ExecContext } from './base';
 import {
     reactSuccess as success,
@@ -28,6 +28,8 @@ export default class FriendlyFire extends Command {
             return;
         }
 
+        const textChannel = msg.channel as TextChannel;
+
         switch (subCommand) {
         case 'add': {
             const [killer, victim] = args;
@@ -42,8 +44,8 @@ export default class FriendlyFire extends Command {
                 return;
             }
 
-            const mentions = msg.mentions.users.array();
-            const pattern = MessageMentions.USERS_PATTERN;
+            const mentions = Array.from(msg.mentions.users.values());
+            const pattern = MessageMentions.UsersPattern;
 
             let killerId: string = msg.author.id;
             if (killer !== AUTHOR) {
@@ -97,7 +99,7 @@ export default class FriendlyFire extends Command {
                 .orderBy('kill_count', 'desc');
 
             if (!topKillers.length) {
-                msg.channel.send('No data.');
+                textChannel.send('No data.');
                 return;
             }
 
@@ -144,7 +146,7 @@ export default class FriendlyFire extends Command {
                 victimList += `\n${i + 1}. ${await getNickname(msg, row.victim_id.toString())} (${row.death_count} deaths)`;
             }
 
-            msg.channel.send(
+            textChannel.send(
                 'Here\'s what\'s up.\n\n'
                 + '**Top killers**:'
                 + `${killerList}\n\n`
@@ -158,14 +160,14 @@ export default class FriendlyFire extends Command {
             break;
         }
         default:
-            msg.channel.send(
+            textChannel.send(
                 `Invalid subcommand. Try: ${validSubCommands}`,
             );
         }
     }
 
     public async sendHelp(msg: Message): Promise<void> {
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: this.trigger,
             description: 'Keeps track of accidental friend murder 🙃\n',
             commands: [

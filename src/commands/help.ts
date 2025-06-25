@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { Message, TextChannel } from 'discord.js';
 import Command, {
     ExecContext, COMMAND_PLUGIN_PREFIX, HELP_POSTFIX,
 } from './base';
@@ -38,7 +38,7 @@ export default class Help extends Command {
             .map((cmd: string) => `\n▫️ \`${prefix}${cmd}\``)
             .reduce((prev: string, current: string) => prev + current, '');
 
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: 'Loot Lord help',
             description: `To get help for a command, type:\n\`${prefix}${this.trigger} <somecommand>\``,
             additional: [{

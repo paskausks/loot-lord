@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { Message, TextChannel } from 'discord.js';
 import { Subject } from 'rxjs';
 import { Knex } from 'knex';
 import { Plugin, PluginInitOptions } from '../core/plugins';
@@ -20,7 +20,7 @@ export default class Command extends Plugin {
     readonly trigger: string = '';
 
     protected async exec(_ctx: ExecContext): Promise<void> { throw new Error('Not implemented!'); }
-    protected async sendHelp(msg: Message): Promise<void> { msg.channel.send('Help not available!'); }
+    protected async sendHelp(msg: Message): Promise<void> { (msg.channel as TextChannel).send('Help not available!'); }
     protected getCommands(): string[] {
         return this.getPlugins().filter(
             (val: string) => val.startsWith(COMMAND_PLUGIN_PREFIX) && val.endsWith(HELP_POSTFIX),

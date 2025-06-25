@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { Message, MessageReaction, User } from 'discord.js';
+import { Message, MessageReaction, TextChannel, User } from 'discord.js';
 import Command, { ExecContext } from './base';
 import { PluginInitOptions } from '../core/plugins';
 import { Quote as QuoteModel } from '../models';
@@ -59,12 +59,12 @@ export default class Quote extends Command {
             return;
         }
 
-        msg.channel.send({
-            embed: {
+        (msg.channel as TextChannel).send({
+            embeds: [{
                 description: `${messageData.message}\n\n`
                 + `- _[${await getNickname(msg, messageData.author_id)}](${messageData.message_url}), `
                 + `${getMoment(messageData.created_at).year()}_\n\n`,
-            },
+            }],
         });
     }
 
@@ -112,6 +112,11 @@ export default class Quote extends Command {
     private async handleReaction(reaction: MessageReaction, user: User, knex: Knex): Promise<void> {
         const { message, emoji } = reaction;
 
+        if (!message.author) {
+            // should never happen
+            return;
+        }
+
         if (message.author.id === user.id) {
             return;
         }
@@ -154,7 +159,7 @@ export default class Quote extends Command {
     }
 
     public async sendHelp(msg: Message): Promise<void> {
-        msg.channel.send(buildHelp({
+        (msg.channel as TextChannel).send(buildHelp({
             title: this.trigger,
             description: 'Manage quotes.',
             commands: [

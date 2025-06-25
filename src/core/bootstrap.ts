@@ -1,5 +1,5 @@
 import knex from 'knex';
-import Discord from 'discord.js';
+import Discord, { GatewayIntentBits, Partials } from 'discord.js';
 import commands from '../commands';
 import initPlugins, { PluginConstructor, systemPlugins } from './plugins';
 
@@ -19,7 +19,19 @@ async function bootstrap(plugins: PluginConstructor[] = []): Promise<Discord.Cli
         useNullAsDefault: true,
     });
 
-    const client = new Discord.Client();
+    const client = new Discord.Client({
+        intents: [
+            GatewayIntentBits.Guilds,
+            GatewayIntentBits.GuildMessages,
+            GatewayIntentBits.MessageContent,
+            GatewayIntentBits.GuildMembers,
+            GatewayIntentBits.DirectMessages,
+        ],
+        partials: [
+            Partials.Channel,
+            Partials.Message // needed to receive DMs
+        ]
+    });
 
     initPlugins({
         knex: cnx,

@@ -42,7 +42,7 @@ interface HelpEmbed {
 /**
  * Builds a help command ready to send as a Discord message.
  */
-function buildHelp(helpContext: HelpBuilderContext): { embed: HelpEmbed } {
+function buildHelp(helpContext: HelpBuilderContext): { embeds: HelpEmbed[] } {
     const prefix = getPrefix();
     const fields = (helpContext.commands || [])
         .map((command) => ({ name: `${prefix}${command.command}`, value: command.explanation }))
@@ -52,12 +52,12 @@ function buildHelp(helpContext: HelpBuilderContext): { embed: HelpEmbed } {
         })));
 
     return {
-        embed: {
+        embeds: [{
             title: helpContext.title,
             description: helpContext.description,
             color: 8604151,
             fields,
-        },
+        }],
     };
 }
 

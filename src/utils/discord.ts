@@ -1,20 +1,21 @@
 import {
     Message, GuildMember, Client, User,
+    PartialMessage,
 } from 'discord.js';
 
 async function reactWithReply(
-    sourceMsg: Message,
+    sourceMsg: Message | PartialMessage,
     reaction: string,
     reply?: string,
 ): Promise<void> {
     await sourceMsg.react(reaction);
 
     if (reply) {
-        sourceMsg.channel.send(reply);
+        sourceMsg.reply(reply);
     }
 }
 
-async function reactSuccess(sourceMsg: Message, reply?: string): Promise<void> {
+async function reactSuccess(sourceMsg: Message | PartialMessage, reply?: string): Promise<void> {
     reactWithReply(sourceMsg, '✅', reply);
 }
 

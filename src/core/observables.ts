@@ -3,7 +3,7 @@ import {
 } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import {
-    Client, Message, MessageReaction, User,
+    Client, Events, Message, MessageReaction, User,
 } from 'discord.js';
 import { getPrefix, splitMessage } from '../utils/bot';
 
@@ -28,11 +28,11 @@ export type MessageObservable = Observable<Message>;
 export type BotCommandMessageObservable = Observable<BotCommandMessage>;
 export type ReactionAddObservable = Observable<[MessageReaction, User]>;
 
-export const ready = (client: Client): ClientObservable => fromEvent(client, 'ready').pipe(
+export const ready = (client: Client): ClientObservable => fromEvent(client, Events.ClientReady).pipe(
     map(() => client),
 );
-export const rawMessage = (client: Client): MessageObservable => fromEvent(client, 'message');
-export const reactionAdd = (client: Client): ReactionAddObservable => fromEvent(client, 'messageReactionAdd');
+export const rawMessage = (client: Client): MessageObservable => fromEvent(client, Events.MessageCreate);
+export const reactionAdd = (client: Client): ReactionAddObservable => fromEvent(client, Events.MessageReactionAdd);
 
 /**
  * An observable which broadcasts messages which could be
@@ -40,6 +40,7 @@ export const reactionAdd = (client: Client): ReactionAddObservable => fromEvent(
  */
 export const botCommandMessage = (client: Client): BotCommandMessageObservable => {
     const pref = getPrefix();
+
     return from(rawMessage(client)).pipe(
         filter((msg) => msg.content.startsWith(pref) && !msg.author.bot),
         filter((msg) => msg.content.length > pref.length),
