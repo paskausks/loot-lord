@@ -52,7 +52,7 @@ export default class Quote extends Command {
             .from<QuoteModel>(this.table)
             .where('accepted', 1)
             .limit(1)
-            .orderByRaw('random()');
+            .orderByRaw('random()') as QuoteModel[];
 
         if (!messageData) {
             reactFail(msg, 'No quotes found in the database!');
@@ -87,7 +87,7 @@ export default class Quote extends Command {
             .select('id')
             .from<QuoteModel>(this.table)
             .where('message_id', lastMessage.id)
-            .limit(1);
+            .limit(1) as QuoteModel[];
 
         if (messageData) {
             reactFail(msg, 'Message already seen!');
@@ -126,7 +126,7 @@ export default class Quote extends Command {
             .from<QuoteModel>(this.table)
             .where('message_id', message.id)
             .andWhere('accepted', 0)
-            .limit(1);
+            .limit(1) as QuoteModel[];
 
         if (!messageData) {
             return;

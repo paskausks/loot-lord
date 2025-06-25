@@ -23,7 +23,7 @@ export default class Help extends Command {
                 `${COMMAND_PLUGIN_PREFIX}${commandArg.toLowerCase()}${HELP_POSTFIX}`,
                 msg,
             );
-        } catch (e) {
+        } catch (_e) {
             reactFail(
                 msg,
                 `The command "${commandArg}" could not be found or help for it is not available!`,

@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export function isValidSequenceNumber(number: string): boolean {
     const index = number.length - 2;
     const head = number.substring(0, index);

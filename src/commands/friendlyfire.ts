@@ -7,6 +7,7 @@ import {
 } from '../utils/discord';
 import { buildHelp } from '../utils/help';
 import { getMoment } from '../utils/moment';
+import { FriendlyFire as FriendlyFireModel } from '../models';
 
 export default class FriendlyFire extends Command {
     public readonly trigger: string = 'friendly';
@@ -109,14 +110,14 @@ export default class FriendlyFire extends Command {
             const [latest] = await knex(this.table)
                 .select('killer_id', 'victim_id', 'created_at')
                 .limit(1)
-                .orderBy('created_at', 'desc');
+                .orderBy('created_at', 'desc') as FriendlyFireModel[];
 
             const [nemesis] = await knex(this.table)
                 .select('killer_id', 'victim_id')
                 .count('* as occurence_count')
                 .limit(1)
                 .groupBy('killer_id', 'victim_id')
-                .orderBy('occurence_count', 'desc');
+                .orderBy('occurence_count', 'desc') as unknown as (FriendlyFireModel & {occurence_count: number})[];
 
             const [
                 latestKiller,
@@ -128,8 +129,8 @@ export default class FriendlyFire extends Command {
                 latest.victim_id,
                 nemesis.killer_id,
                 nemesis.victim_id,
-            ].map((v) => getNickname(msg, v)));
-            const latestTimesince = getMoment(latest.created_at).fromNow();
+            ].map((v: string) => getNickname(msg, v)));
+            const latestTimesince = getMoment(latest.created_at as string).fromNow();
             let killerList = '';
             let i = 0;
             for (i; i < topKillers.length; i += 1) {

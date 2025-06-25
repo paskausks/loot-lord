@@ -163,7 +163,9 @@ export default class SimpleCommand extends Command {
                     response,
                     created_by_id: msg.author.id,
                 });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (e: any) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 if (e.errno && e.errno === 19) {
                     fail(msg, `The command '${command}' is already taken!`);
                     return;
@@ -319,7 +321,7 @@ export default class SimpleCommand extends Command {
             .select(...fields)
             .from<SimpleCommand>('simplecommands')
             .where('command', name)
-            .limit(1);
+            .limit(1) as SimpleCommandModel[];
         return result;
     }
 

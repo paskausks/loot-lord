@@ -44,7 +44,7 @@ async function getNickname(
     let member;
     try {
         member = getGuildMember(source, userId);
-    } catch (e) {
+    } catch (_e) {
         member = null;
     }
 
@@ -53,7 +53,7 @@ async function getNickname(
         let user;
         try {
             user = await source.client.users.fetch(userId);
-        } catch (e) {
+        } catch (_e) {
             return 'Unknown';
         }
         return user.username;

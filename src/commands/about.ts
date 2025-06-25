@@ -22,7 +22,7 @@ export default class About extends Command {
         try {
             packageInfo = JSON.parse(
                 fs.readFileSync(path.join(__dirname, '..', '..', 'package.json')).toString(),
-            );
+            ) as PackageJson;
         } catch {
             this.log('package.json missing!', 'debug');
         }
