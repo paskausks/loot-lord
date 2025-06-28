@@ -87,6 +87,8 @@ module.exports = defineConfig([eslint.configs.recommended, tseslint.configs.reco
                 'created_by_id',
                 'updated_at',
                 'ignorer_id',
+                'entity_id',
+                'previous_response_id',
             ],
         }],
     },
