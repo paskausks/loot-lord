@@ -89,6 +89,9 @@ module.exports = defineConfig([eslint.configs.recommended, tseslint.configs.reco
                 'ignorer_id',
                 'entity_id',
                 'previous_response_id',
+
+                // OpenAI API fields
+                'image_url',
             ],
         }],
     },

@@ -5,10 +5,10 @@ import * as cheerio from 'cheerio';
 import { Message, TextChannel, User } from 'discord.js';
 import Command, { ExecContext } from '../base';
 import { buildHelp } from '../../utils/help';
-import { ResponseCreateParamsNonStreaming } from 'openai/resources/responses/responses';
+import { ResponseCreateParamsNonStreaming, ResponseInputImage, ResponseInputText } from 'openai/resources/responses/responses';
 import { PluginInitOptions } from '../../core/plugins';
 import { ChatGPTPreviousResponse } from '../../models';
-import URLCrawlResult from './url-crawl-result';
+import URLCrawlResult, { URLType } from './url-crawl-result';
 import supplementaryInstructions from './supplementary-instructions';
 
 export default class ChatGPT extends Command {
@@ -71,42 +71,68 @@ export default class ChatGPT extends Command {
         const id = ChatGPT.createId(ctx.msg);
         const previousResponseEntry: { previous_response_id: string } | undefined = await this.getPreviousResponseId(ctx.knex, id);
 
-        let input = '';
+        let text = '';
         const author = message.author;
         const authorId = ChatGPT.generateAuthorString(author);
 
         if (ChatGPT.isDM(message)) {
-            input += `Direct message from ${authorId}:`;
+            text += `Direct message from ${authorId}:`;
         } else {
-            input += `Public chat message from ${authorId}:`;
+            text += `Public chat message from ${authorId}:`;
         }
 
-        input += '\n\n' + message.cleanContent.substring(2 + this.trigger.length);
+        text += '\n\n' + message.cleanContent.substring(2 + this.trigger.length);
 
-        const referenceMessageId = message.reference?.messageId;
+        const referenceMessageId = message .reference?.messageId;
+
+        const links = Array.from(text.matchAll(this.linkPattern), (match) => match[0].trim());
 
         if (referenceMessageId) {
             // possibly a reply
             const replyMessage = await message.channel.messages.fetch(referenceMessageId);
-            input += `\n\nMessage content end. The above message is a reply to this message from ${ChatGPT.generateAuthorString(replyMessage.author)}:`;
-            input += '\n\n' + replyMessage.cleanContent;
+            text += `\n\nMessage content end. The above message is a reply to this message from ${ChatGPT.generateAuthorString(replyMessage.author)}:`;
+            text += '\n\n' + replyMessage.cleanContent;
+
+            // include attachment URLs which could be images from the message replied to
+            replyMessage.attachments.forEach((attachment) => links.push(attachment.url));
         }
 
-        const links = Array.from(input.matchAll(this.linkPattern), (match) => match[0].trim())
-            .map((url: string) => ChatGPT.parseUrl(url));
+        // include attachment URLs which could be images in the original image
+        ctx.msg.attachments.forEach((attachment) => links.push(attachment.url));
 
-        const parsedLinks = (await Promise.all(links)).filter((result) => !!result);
+        const parseRequests = links.map((url: string) => ChatGPT.parseUrl(url));
+        const parsedLinks = (await Promise.all(parseRequests)).filter((result) => result != null);
 
-        if (parsedLinks.length) {
-            input += '\n\nLinks in the messages:\n\n```json\n';
-            input += JSON.stringify(parsedLinks);
-            input += '```';
+        const htmlLinks = parsedLinks.filter((l) => l.type === URLType.HTML);
+        if (htmlLinks.length) {
+            text += '\n\nLinks in the messages:\n\n```json\n';
+            // omit "type" field from output
+            text += JSON.stringify(htmlLinks.map(({type, ...rest}) => rest));
+            text += '```';
         }
+
+        const content: (ResponseInputText | ResponseInputImage)[] = [
+            {
+                type: 'input_text',
+                text,
+            }
+        ];
+
+        parsedLinks.filter((link) => link.type === URLType.Image).forEach((imageLink) => {
+            content.push({
+                type: 'input_image',
+                image_url: imageLink.url,
+                detail: 'auto',
+            });
+        });
 
         const options: ResponseCreateParamsNonStreaming = {
             model: this.model,
             instructions,
-            input,
+            input: [{
+                role: 'user',
+                content,
+            }],
         };
 
         if (previousResponseEntry) {
@@ -179,7 +205,20 @@ export default class ChatGPT extends Command {
             return null;
         }
 
-        if (!(response.headers.get('content-type') || '').toLowerCase().startsWith('text/html')) {
+        const contentType = (response.headers.get('content-type') || '').toLowerCase();
+        if (!contentType.startsWith('text/html')) {
+            const imageContentTypeCat = 'image/';
+            if (contentType.startsWith(imageContentTypeCat)) {
+                const imageType = contentType.slice(imageContentTypeCat.length);
+                // types supported by chatGPT.
+                if (['png', 'jpeg', 'webp', 'gif'].some((i) => imageType === i)) {
+                    return {
+                        url,
+                        type: URLType.Image,
+                    };
+                }
+                return null;
+            }
             return null;
         }
 
@@ -213,6 +252,7 @@ export default class ChatGPT extends Command {
         ).join(' ').trim().slice(0, 1500);
 
         return {
+            type: URLType.HTML,
             url,
             title,
             description,

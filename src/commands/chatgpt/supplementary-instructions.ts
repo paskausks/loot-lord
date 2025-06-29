@@ -15,6 +15,8 @@ beginning with the text `Links in the messages:` with the following keys:\n\n\
 * `url` - the original matched URL\n\
 * `title` - the title of the page\n\
 * `description` - the description meta tag\n\
-* `paragraphs` - the content of the first 10 matched `<p>` tags trimmed to 1500 characters.";
+* `paragraphs` - the content of the first 10 matched `<p>` tags trimmed to 1500 characters.\n\n\
+\
+If links are images (or there are images among attachments), they will be supplied via \"input_image\" entries to your input.";
 
 export default supplementaryInstructions;
