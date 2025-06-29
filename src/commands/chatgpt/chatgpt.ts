@@ -112,7 +112,7 @@ export default class ChatGPT extends Command {
         if (msg.channel.isTextBased()) {
             (msg.channel as TextChannel).send(buildHelp({
                 title: this.trigger,
-                description: 'Utilizes ChatGPT for interactive replies',
+                description: 'Utilizes ChatGPT for interactive replies.\n\nUsage - `!ai <some prompt>`',
             }));
         }
     }
