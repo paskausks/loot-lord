@@ -115,7 +115,7 @@ export default class ChatGPT extends Command {
 
         const response = await this.openAIClient.responses.create(options);
 
-        this.createEntry(ctx.knex, id, response.id, Boolean(previousResponseEntry));
+        await this.createEntry(ctx.knex, id, response.id, Boolean(previousResponseEntry));
 
         await ctx.msg.reply(response.output_text);
 
