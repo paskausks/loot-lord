@@ -148,6 +148,10 @@ export default class ChatGPT extends Command {
         return result;
     }
 
+    static shouldLoad(): boolean {
+        return !!process.env.DISCORD_BOT_OPENAI_API_KEY;
+    }
+
     private static async parseUrl(url: string): Promise<URLCrawlResult | null> {
         let response: Response;
 
