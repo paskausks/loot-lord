@@ -6,6 +6,7 @@ import Uptime from './uptime';
 import Roll from './roll';
 import React from './react';
 import Quote from './quote';
+import ChatGPT from './chatgpt';
 
 const commands = [
     Help,
@@ -16,6 +17,7 @@ const commands = [
     Quote,
     About,
     Uptime,
+    ChatGPT,
 ];
 
 export default commands;

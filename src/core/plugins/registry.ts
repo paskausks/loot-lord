@@ -39,12 +39,14 @@ export const initPlugins = (
         ...dependencies,
     };
 
-    return plugins.map(
-        (PluginCls) => PluginCls.create({
-            ...dependencies,
-            ...initOptions,
-        } as PluginInitOptions),
-    );
+    return plugins
+        .filter((PluginCls) => PluginCls.shouldLoad())
+        .map(
+            (PluginCls) => PluginCls.create({
+                ...dependencies,
+                ...initOptions,
+            } as PluginInitOptions),
+        );
 };
 
 export default initPlugins;

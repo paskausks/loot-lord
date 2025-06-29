@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+* Added: optional ChatGPT plugin. To use, set the `DISCORD_BOT_OPENAI_API_KEY` environment variable to a valid API key.
+* Updated most of the packages of the project and raise the minimum NodeJS version to v22.
+
 ## [v0.4.0]
 
 * Added: Command ignore list, using `!command ignore` and `!command unignore`. Useful if you are running multiple bots, using the same prefix

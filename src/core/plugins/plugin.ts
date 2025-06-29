@@ -65,6 +65,13 @@ class Plugin {
     static create(options: PluginInitOptions): Plugin {
         return new this(options);
     }
+
+    /**
+     * Return if the plugin should be loaded.
+     */
+    static shouldLoad(): boolean {
+        return true;
+    }
 }
 
 /**
@@ -73,6 +80,7 @@ class Plugin {
 interface PluginConstructor {
   new (options: PluginInitOptions): Plugin;
   create (options: PluginInitOptions): Plugin;
+  shouldLoad (): boolean;
 }
 
 export {
