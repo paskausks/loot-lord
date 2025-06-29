@@ -1,12 +1,15 @@
-import { Message, TextChannel, User } from 'discord.js';
-import Command, { ExecContext } from './base';
-import { buildHelp } from '../utils/help';
 import OpenAI from "openai";
-import { ResponseCreateParamsNonStreaming } from 'openai/resources/responses/responses';
-import { PluginInitOptions } from '../core/plugins';
 import fs from 'fs';
 import { Knex } from 'knex';
-import { ChatGPTPreviousResponse } from '../models';
+import * as cheerio from 'cheerio';
+import { Message, TextChannel, User } from 'discord.js';
+import Command, { ExecContext } from '../base';
+import { buildHelp } from '../../utils/help';
+import { ResponseCreateParamsNonStreaming } from 'openai/resources/responses/responses';
+import { PluginInitOptions } from '../../core/plugins';
+import { ChatGPTPreviousResponse } from '../../models';
+import URLCrawlResult from './url-crawl-result';
+import supplementaryInstructions from './supplementary-instructions';
 
 export default class ChatGPT extends Command {
     public readonly trigger: string = 'ai';
@@ -15,6 +18,7 @@ export default class ChatGPT extends Command {
     private readonly model: string = process.env.DISCORD_BOT_OPENAI_MODEL || '';
     private readonly openAIClient?: OpenAI;
     private readonly instructions: string = '';
+    private readonly linkPattern: RegExp = /(https?:\/\/[.\S]+)\s?/gm;
 
     constructor(options: PluginInitOptions) {
         super(options);
@@ -49,6 +53,7 @@ export default class ChatGPT extends Command {
         }
 
         let instructions = this.instructions;
+        instructions += supplementaryInstructions;
         instructions += `\n\nYour nickname is ${message.client.user.displayName}.`;
 
         const id = ChatGPT.createId(ctx.msg);
@@ -67,6 +72,7 @@ export default class ChatGPT extends Command {
         input += '\n\n' + message.cleanContent.substring(2 + this.trigger.length);
 
         const referenceMessageId = message.reference?.messageId;
+
         if (referenceMessageId) {
             // possibly a reply
             const replyMessage = await message.channel.messages.fetch(referenceMessageId);
@@ -74,10 +80,21 @@ export default class ChatGPT extends Command {
             input += '\n\n' + replyMessage.cleanContent;
         }
 
+        const links = Array.from(input.matchAll(this.linkPattern), (match) => match[0].trim())
+            .map((url: string) => ChatGPT.parseUrl(url));
+
+        const parsedLinks = (await Promise.all(links)).filter((result) => !!result);
+
+        if (parsedLinks.length) {
+            input += '\n\nLinks in the messages:\n\n```json\n';
+            input += JSON.stringify(parsedLinks);
+            input += '```';
+        }
+
         const options: ResponseCreateParamsNonStreaming = {
             model: this.model,
             instructions,
-            input
+            input,
         };
 
         if (previousResponseEntry) {
@@ -98,29 +115,6 @@ export default class ChatGPT extends Command {
                 description: 'Utilizes ChatGPT for interactive replies',
             }));
         }
-    }
-
-    private static isDM(msg: Message): boolean {
-        return !!msg.guild;
-    }
-
-    private static createId(msg: Message): string {
-        let prefix: string;
-        let id: string;
-
-        if (msg.guild) {
-            prefix = 'g';
-            id = msg.guild.id;
-        } else {
-            prefix = 'a';
-            id = msg.author.id;
-        }
-
-        return `${prefix}:${id}`;
-    }
-
-    private static generateAuthorString(author: User): string {
-        return `${author.displayName}, user ID ${author.id}`;
     }
 
     private async createEntry(
@@ -145,13 +139,89 @@ export default class ChatGPT extends Command {
     private async getPreviousResponseId(
         knex: Knex,
         entityId: string,
-        fields: string[] = ['previous_response_id'],
     ): Promise<{ previous_response_id: string } | undefined> {
         const [result] = await knex
-            .select(...fields)
+            .select('previous_response_id')
             .from<ChatGPTPreviousResponse>(this.table)
             .where('entity_id', entityId)
             .limit(1) as ChatGPTPreviousResponse[];
         return result;
+    }
+
+    private static async parseUrl(url: string): Promise<URLCrawlResult | null> {
+        let response: Response;
+
+        try {
+            response = await fetch(url.trim());
+        } catch {
+            return null;
+        }
+
+        if (!(response.headers.get('content-type') || '').toLowerCase().startsWith('text/html')) {
+            return null;
+        }
+
+        let textContent: string;
+        try {
+            textContent = await response.text();
+        } catch {
+            return null;
+        }
+
+        const c = cheerio.load(textContent);
+
+        // assume that if title open graph tag exists, description does as well
+        let title = c(ChatGPT.getOGTagParam('title')).attr('content');
+
+        if (!title) {
+            title = c('title').text();
+        }
+
+        // prefer regular description meta tag instead of OG, since that isn't trimmed
+        let description = c('meta[name=description]').attr('content');
+        if (!description) {
+            description = c(ChatGPT.getOGTagParam('description')).attr('content') || '';
+        }
+
+        // first 10 paragraphs limited to 1000 chars
+        const p = c('p').slice(0, 10);
+        const paragraphs = Array.from(
+            p,
+            ((_, i) => p.eq(i).text())
+        ).join(' ').trim().slice(0, 1500);
+
+        return {
+            url,
+            title,
+            description,
+            paragraphs,
+        };
+    }
+
+    private static getOGTagParam(tag: string): string {
+        return `meta[property=og:${tag}]`;
+    }
+
+    private static isDM(msg: Message): boolean {
+        return !!msg.guild;
+    }
+
+    private static createId(msg: Message): string {
+        let prefix: string;
+        let id: string;
+
+        if (msg.guild) {
+            prefix = 'g';
+            id = msg.guild.id;
+        } else {
+            prefix = 'a';
+            id = msg.author.id;
+        }
+
+        return `${prefix}:${id}`;
+    }
+
+    private static generateAuthorString(author: User): string {
+        return `${author.displayName}, ID ${author.id}`;
     }
 }
