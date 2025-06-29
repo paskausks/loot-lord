@@ -35,6 +35,14 @@ Build the bot and start it:
 npm run build && npm start
 ```
 
+### ChatGPT functionality
+
+The bot has optional ChatGPT functionality via OpenAI's API. If you'd like to use it, set these relevant environment variables:
+
+* `DISCORD_BOT_OPENAI_API_KEY` - a valid OpenAI API key.
+* `DISCORD_BOT_OPENAI_MODEL` - the model to use. `gpt-4.1-mini` recommended as a good speed/quality balance.
+* `DISCORD_BOT_OPENAI_INSTRUCTIONS_PATH` - a path to a text file which will be sent as the instruction block.
+
 ## Commands
 
 Run tests
