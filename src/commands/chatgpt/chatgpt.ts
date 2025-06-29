@@ -19,6 +19,8 @@ export default class ChatGPT extends Command {
     private readonly openAIClient?: OpenAI;
     private readonly instructions: string = '';
     private readonly linkPattern: RegExp = /(https?:\/\/[.\S]+)\s?/gm;
+    private readonly processingQueue: ExecContext[] = [];
+    private isProcessing: boolean = false;
 
     constructor(options: PluginInitOptions) {
         super(options);
@@ -41,7 +43,16 @@ export default class ChatGPT extends Command {
     }
 
     public async exec(ctx: ExecContext): Promise<void> {
+        if (this.isProcessing) {
+            this.processingQueue.push(ctx);
+            return;
+        }
+
+        // process messages one by one to keep the conversation threads linear.
+        this.isProcessing = true;
+
         if (!this.openAIClient) {
+            this.isProcessing = false;
             return;
         }
 
@@ -49,6 +60,7 @@ export default class ChatGPT extends Command {
 
         if (!ctx.args.length) {
             this.sendHelp(message);
+            this.isProcessing = false;
             return;
         }
 
@@ -105,7 +117,13 @@ export default class ChatGPT extends Command {
 
         this.createEntry(ctx.knex, id, response.id, Boolean(previousResponseEntry));
 
-        ctx.msg.reply(response.output_text);
+        await ctx.msg.reply(response.output_text);
+
+        this.isProcessing = false;
+
+        if (this.processingQueue.length) {
+            this.exec(this.processingQueue.shift() as ExecContext);
+        }
     }
 
     public async sendHelp(msg: Message): Promise<void> {
