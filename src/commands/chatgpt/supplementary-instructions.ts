@@ -17,6 +17,8 @@ beginning with the text `Links in the messages:` with the following keys:\n\n\
 * `description` - the description meta tag\n\
 * `paragraphs` - the content of the first 10 matched `<p>` tags trimmed to 1500 characters.\n\n\
 \
-If links are images (or there are images among attachments), they will be supplied via \"input_image\" entries to your input.";
+If links are images (or there are images among attachments), they will be supplied via \"input_image\" entries to your input.\n\n\
+\
+The response should **never** exceed 1900 characters!";
 
 export default supplementaryInstructions;
