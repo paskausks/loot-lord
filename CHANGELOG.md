@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+* Add discord message character limit to ChatGPT instructions.
+* Added sending of typing signal while processing ChatGPT prompt.
+* Fixed where ChatGPT prompt header was incorrectly sent
+
 ## [v0.5.0]
 * Added: optional ChatGPT plugin. To use, set the `DISCORD_BOT_OPENAI_API_KEY` environment variable to a valid API key.
 * Updated most of the packages of the project and raise the minimum NodeJS version to v22.
