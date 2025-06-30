@@ -1,15 +1,16 @@
 import OpenAI from "openai";
+import { ResponseCreateParamsNonStreaming, ResponseInputImage, ResponseInputText } from 'openai/resources/responses/responses';
 import fs from 'fs';
 import { Knex } from 'knex';
 import * as cheerio from 'cheerio';
-import { Message, TextChannel, User } from 'discord.js';
+import { APIEmbedField, Embed, Message, TextChannel, User } from 'discord.js';
 import Command, { ExecContext } from '../base';
 import { buildHelp } from '../../utils/help';
-import { ResponseCreateParamsNonStreaming, ResponseInputImage, ResponseInputText } from 'openai/resources/responses/responses';
 import { PluginInitOptions } from '../../core/plugins';
 import { ChatGPTPreviousResponse } from '../../models';
 import URLCrawlResult, { URLType } from './url-crawl-result';
 import supplementaryInstructions from './supplementary-instructions';
+import EmbedParseResult from "./embed-parse-result";
 
 export default class ChatGPT extends Command {
     public readonly trigger: string = 'g';
@@ -90,6 +91,8 @@ export default class ChatGPT extends Command {
 
         const links = Array.from(text.matchAll(this.linkPattern), (match) => match[0].trim());
 
+        let embedContent = '';
+
         if (referenceMessageId) {
             // possibly a reply
             const replyMessage = await message.channel.messages.fetch(referenceMessageId);
@@ -97,11 +100,27 @@ export default class ChatGPT extends Command {
             text += '\n\n' + replyMessage.cleanContent;
 
             // include attachment URLs which could be images from the message replied to
+            // and embed data.
             replyMessage.attachments.forEach((attachment) => links.push(attachment.url));
+            const replyEmbedParseResults = this.parseEmbeds(replyMessage.embeds);
+            replyEmbedParseResults.forEach((result) => {
+                embedContent += (embedContent.length > 0 ? '\n\n' : '') + result.text;
+                result.urls.forEach((url) => {
+                    links.push(url);
+                });
+            });
         }
 
         // include attachment URLs which could be images in the original image
-        ctx.msg.attachments.forEach((attachment) => links.push(attachment.url));
+        // and embed data.
+        message.attachments.forEach((attachment) => links.push(attachment.url));
+        const embedParseResults = this.parseEmbeds(message.embeds);
+        embedParseResults.forEach((result) => {
+            embedContent += (embedContent.length > 0 ? '\n\n' : '') + result.text;
+            result.urls.forEach((url) => {
+                links.push(url);
+            });
+        });
 
         const parseRequests = links.map((url: string) => ChatGPT.parseUrl(url));
         const parsedLinks = (await Promise.all(parseRequests)).filter((result) => result != null);
@@ -111,6 +130,12 @@ export default class ChatGPT extends Command {
             text += '\n\nLinks in the messages:\n\n```json\n';
             // omit "type" field from output
             text += JSON.stringify(htmlLinks.map(({type, ...rest}) => rest));
+            text += '```';
+        }
+
+        if (embedContent.length) {
+            text += '\n\n' + '```md\n#Embed content:\n';
+            text += embedContent;
             text += '```';
         }
 
@@ -193,6 +218,28 @@ export default class ChatGPT extends Command {
             .where('entity_id', entityId)
             .limit(1) as ChatGPTPreviousResponse[];
         return result;
+    }
+
+    private parseEmbeds(embeds: Embed[]): EmbedParseResult[] {
+        return embeds.map((embed: Embed) => {
+            let text = '';
+            text += embed.title;
+            text += '\n\n'+ embed.description;
+
+            const footerText = embed.footer?.text || '';
+            if (footerText.length) {
+                text += '\n\n'+ footerText;
+            }
+
+            text += '\n\n' + embed.fields.map((field: APIEmbedField) => {
+                return field.name + '\n' + field.value;
+            }).reduce((acc, curr) => acc + '\n\n' + curr, '');
+
+            return {
+                text,
+                urls: Array.from(text.matchAll(this.linkPattern), (match) => match[0].trim()),
+            } as EmbedParseResult;
+        }).flat();
     }
 
     static shouldLoad(): boolean {

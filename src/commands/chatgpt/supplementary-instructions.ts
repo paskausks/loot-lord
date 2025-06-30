@@ -20,6 +20,9 @@ beginning with the text `Links in the messages:` with the following keys:\n\n\
 \
 If links are images (or there are images among attachments), they will be supplied via \"input_image\" entries to your input.\n\n\
 \
+If either the original or message replied to will contain Discord embeds, their content will be dumped as a markdown \
+block starting with the header `Embed content:`. Their links will be included in the link JSON array above.\n\n\
+\
 The response should **never** exceed 1900 characters!";
 
 export default supplementaryInstructions;
