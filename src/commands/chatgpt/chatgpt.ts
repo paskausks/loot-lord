@@ -265,7 +265,7 @@ export default class ChatGPT extends Command {
     }
 
     private static isDM(msg: Message): boolean {
-        return !!msg.guild;
+        return !msg.guild;
     }
 
     private static createId(msg: Message): string {
