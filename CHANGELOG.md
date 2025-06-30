@@ -2,9 +2,10 @@
 
 ## [Unreleased]
 
-* Add discord message character limit to ChatGPT instructions.
+* Added including channel name for ChatGPT prompts originating in public channels.
+* Added discord message character limit to ChatGPT instructions.
 * Added sending of typing signal while processing ChatGPT prompt.
-* Fixed where ChatGPT prompt header was incorrectly sent
+* Fixed where ChatGPT prompt header was incorrectly sent.
 
 ## [v0.5.0]
 * Added: optional ChatGPT plugin. To use, set the `DISCORD_BOT_OPENAI_API_KEY` environment variable to a valid API key.

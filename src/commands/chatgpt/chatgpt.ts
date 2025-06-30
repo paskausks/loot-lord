@@ -80,7 +80,7 @@ export default class ChatGPT extends Command {
         if (ChatGPT.isDM(message)) {
             text += `Direct message from ${authorId}:`;
         } else {
-            text += `Public chat message from ${authorId}:`;
+            text += `Public chat message from ${authorId} in #${(message.channel as TextChannel).name}:`;
         }
 
         text += '\n\n' + message.cleanContent.substring(2 + this.trigger.length);

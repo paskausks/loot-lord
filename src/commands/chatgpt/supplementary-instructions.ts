@@ -1,8 +1,9 @@
 const supplementaryInstructions = "\
 The prompt will begin with the header `Direct message from <authorId>:` if its a direct message or \
-`Public chat message from <authorId>:` if its a message in a public Discord channel. `<authorId>` will be \
-in the form of `<displayName>, ID <id>` where `<displayName>` is the user's nickname and `<id>` is the user's \
-unique Discord id. Then the message content will follow.\n\n\
+`Public chat message from <authorId> in #<channelName>:` if its a message in a public Discord channel. `<authorId>` \
+will be in the form of `<displayName>, ID <id>` where `<displayName>` is the user's nickname and `<id>` is the user's \
+unique Discord id. For public messages, `<channelName>` will be the public Discord channel where the message was posted. \
+Then the message content will follow.\n\n\
 \
 Optionally, if the message is a reply to another message, after the original message content there will be a text like \
 `Message content end. The above message is a reply to this message from <replyAuthorId>:` where `<replyAuthorId>` \
