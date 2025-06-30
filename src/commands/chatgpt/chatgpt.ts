@@ -18,7 +18,7 @@ export default class ChatGPT extends Command {
     private readonly model: string = process.env.DISCORD_BOT_OPENAI_MODEL || '';
     private readonly openAIClient?: OpenAI;
     private readonly instructions: string = '';
-    private readonly linkPattern: RegExp = /(https?:\/\/[.\S]+)\s?/gm;
+    private readonly linkPattern: RegExp = /<?(https?:\/\/.+?)>?(?:\s|$)/gm;
     private readonly processingQueue: ExecContext[] = [];
     private isProcessing: boolean = false;
 
