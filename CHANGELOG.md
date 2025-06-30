@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [v0.5.1]
 
 * Added rudimentary Discord embed parsing to the ChatGPT Plugin.
 * Fixed where the ChatGPT plugin didn't parse links wrapped in angle brackets (`<>`).

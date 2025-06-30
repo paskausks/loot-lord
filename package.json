@@ -1,6 +1,6 @@
 {
   "name": "loot-lord",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Yet another Discord bot",
   "main": "dist/index.js",
   "private": true,
