@@ -12,7 +12,7 @@ import URLCrawlResult, { URLType } from './url-crawl-result';
 import supplementaryInstructions from './supplementary-instructions';
 
 export default class ChatGPT extends Command {
-    public readonly trigger: string = 'ai';
+    public readonly trigger: string = 'g';
     public readonly table: string = 'chatgpt';
 
     private readonly model: string = process.env.DISCORD_BOT_OPENAI_MODEL || '';
@@ -64,6 +64,8 @@ export default class ChatGPT extends Command {
             return;
         }
 
+        await (ctx.msg.channel as TextChannel).sendTyping();
+
         let instructions = this.instructions;
         instructions += supplementaryInstructions;
         instructions += `\n\nYour nickname is ${message.client.user.displayName}.`;
@@ -83,7 +85,7 @@ export default class ChatGPT extends Command {
 
         text += '\n\n' + message.cleanContent.substring(2 + this.trigger.length);
 
-        const referenceMessageId = message .reference?.messageId;
+        const referenceMessageId = message.reference?.messageId;
 
         const links = Array.from(text.matchAll(this.linkPattern), (match) => match[0].trim());
 
@@ -156,7 +158,7 @@ export default class ChatGPT extends Command {
         if (msg.channel.isTextBased()) {
             (msg.channel as TextChannel).send(buildHelp({
                 title: this.trigger,
-                description: 'Utilizes ChatGPT for interactive replies.\n\nUsage - `!ai <some prompt>`',
+                description: 'Utilizes ChatGPT for interactive replies.\n\nUsage - `!g <some prompt>`',
             }));
         }
     }
