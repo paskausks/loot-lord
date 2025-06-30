@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+* Fixed where links wrapped in angle brackets (`<>`) weren't parsed.
 * Added including channel name for ChatGPT prompts originating in public channels.
 * Added discord message character limit to ChatGPT instructions.
 * Added sending of typing signal while processing ChatGPT prompt.
