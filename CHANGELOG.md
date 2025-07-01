@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [v0.6.0]
 
 * Added: Counter system via the `!cnt` command.
 
