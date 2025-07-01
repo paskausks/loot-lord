@@ -70,14 +70,14 @@ export default class SimpleCommand extends Command {
         // FIXME: Extract into separate methods to save indent.
         switch (subCommand) {
         case 'list': {
-            const all = await this.getAll(ctx.knex);
+            const all = await this.getAll(knex);
 
             if (!all.length) {
                 textChannel.send('No custom commands created.');
                 return;
             }
 
-            const ignored = (await this.getIgnored(ctx.knex)).map((c) => `\`${c.command}\``).join(', ');
+            const ignored = (await this.getIgnored(knex)).map((c) => `\`${c.command}\``).join(', ');
 
             textChannel.send(
                 `Currently saved commands: ${all

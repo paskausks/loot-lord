@@ -7,6 +7,7 @@ import Roll from './roll';
 import React from './react';
 import Quote from './quote';
 import ChatGPT from './chatgpt';
+import Counter from './counter';
 
 const commands = [
     Help,
@@ -18,6 +19,7 @@ const commands = [
     About,
     Uptime,
     ChatGPT,
+    Counter,
 ];
 
 export default commands;

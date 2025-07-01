@@ -1,17 +1,22 @@
 # Changelog
 
+## [Unreleased]
+
+* Added: Counter system via the `!cnt` command.
+
 ## [v0.5.1]
 
-* Added rudimentary Discord embed parsing to the ChatGPT Plugin.
-* Fixed where the ChatGPT plugin didn't parse links wrapped in angle brackets (`<>`).
-* Added including channel name for ChatGPT prompts originating in public channels.
-* Added discord message character limit to ChatGPT instructions.
-* Added sending of typing signal while processing ChatGPT prompt.
-* Fixed where ChatGPT prompt header was incorrectly sent.
+* Added: rudimentary Discord embed parsing to the ChatGPT Plugin.
+* Fixed: the ChatGPT plugin didn't parse links wrapped in angle brackets (`<>`).
+* Added: include channel name for ChatGPT prompts originating in public channels.
+* Added: discord message character limit to ChatGPT instructions.
+* Added: send typing signal while processing ChatGPT prompt.
+* Fixed: ChatGPT prompt header was incorrectly sent.
 
 ## [v0.5.0]
+
 * Added: optional ChatGPT plugin. To use, set the `DISCORD_BOT_OPENAI_API_KEY` environment variable to a valid API key.
-* Updated most of the packages of the project and raise the minimum NodeJS version to v22.
+* Updated: most of the packages of the project and raise the minimum NodeJS version to v22.
 
 ## [v0.4.0]
 

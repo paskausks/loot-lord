@@ -12,6 +12,8 @@ import URLCrawlResult, { URLType } from './url-crawl-result';
 import supplementaryInstructions from './supplementary-instructions';
 import EmbedParseResult from "./embed-parse-result";
 
+type PreviousResponseId = Pick<ChatGPTPreviousResponse, 'previous_response_id'>;
+
 export default class ChatGPT extends Command {
     public readonly trigger: string = 'g';
     public readonly table: string = 'chatgpt';
@@ -73,7 +75,7 @@ export default class ChatGPT extends Command {
         instructions += `\n\nYour nickname is ${message.client.user.displayName}.`;
 
         const id = ChatGPT.createId(ctx.msg);
-        const previousResponseEntry: { previous_response_id: string } | undefined = await this.getPreviousResponseId(ctx.knex, id);
+        const previousResponseEntry: PreviousResponseId | undefined = await this.getPreviousResponseId(ctx.knex, id);
 
         let text = '';
         const author = message.author;
@@ -211,7 +213,7 @@ export default class ChatGPT extends Command {
     private async getPreviousResponseId(
         knex: Knex,
         entityId: string,
-    ): Promise<{ previous_response_id: string } | undefined> {
+    ): Promise<PreviousResponseId | undefined> {
         const [result] = await knex
             .select('previous_response_id')
             .from<ChatGPTPreviousResponse>(this.table)

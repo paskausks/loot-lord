@@ -45,10 +45,16 @@ export interface IgnoredCommand {
     updated_at: string;
 }
 
-
 export interface ChatGPTPreviousResponse {
     entity_id: string;
     previous_response_id: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Counter {
+    key: string;
+    count: number;
     created_at: string;
     updated_at: string;
 }
