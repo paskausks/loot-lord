@@ -1,5 +1,10 @@
 import OpenAI from "openai";
-import { ResponseCreateParamsNonStreaming, ResponseInputImage, ResponseInputText } from 'openai/resources/responses/responses';
+import {
+    ResponseCreateParamsNonStreaming,
+    ResponseInputImage,
+    ResponseInputText,
+    ResponseUsage
+} from 'openai/resources/responses/responses';
 import fs from 'fs';
 import { Knex } from 'knex';
 import * as cheerio from 'cheerio';
@@ -11,6 +16,7 @@ import { ChatGPTPreviousResponse } from '../../models';
 import URLCrawlResult, { URLType } from './url-crawl-result';
 import supplementaryInstructions from './supplementary-instructions';
 import EmbedParseResult from "./embed-parse-result";
+import { reactFail, reactSuccess } from "../../utils/discord";
 
 type PreviousResponseId = Pick<ChatGPTPreviousResponse, 'previous_response_id'>;
 
@@ -24,7 +30,9 @@ export default class ChatGPT extends Command {
     // match https://, link can also be wrapped in angle brackets.
     private readonly linkPattern: RegExp = /(https?:\/\/[.\S]+[^>])\s?/gm;
     private readonly processingQueue: ExecContext[] = [];
+    private readonly systemUserIds: string[] = [];
     private isProcessing: boolean = false;
+    private tokenCost: Map<string, ResponseUsage | undefined> = new Map();
 
     constructor(options: PluginInitOptions) {
         super(options);
@@ -44,6 +52,7 @@ export default class ChatGPT extends Command {
         }
 
         this.instructions = fs.readFileSync(instructionsFilePath).toString();
+        this.systemUserIds = (process.env.DISCORD_BOT_OPENAI_SYS_USERIDS || '').split(',').filter((v) => v !== '');
     }
 
     public async exec(ctx: ExecContext): Promise<void> {
@@ -60,23 +69,42 @@ export default class ChatGPT extends Command {
             return;
         }
 
-        const message = ctx.msg;
+        const {msg: message, args} = ctx;
 
-        if (!ctx.args.length) {
+        if (!args.length) {
             this.sendHelp(message);
             this.isProcessing = false;
             return;
         }
 
-        await (ctx.msg.channel as TextChannel).sendTyping();
+        await (message.channel as TextChannel).sendTyping();
 
         let instructions = this.instructions;
         instructions += supplementaryInstructions;
 
-        const botUser: ClientUser = message.client.user
+        const botUser: ClientUser = message.client.user;
         instructions += `\n\nYour nickname is ${botUser.displayName}, ID: ${botUser.id}.`;
 
         const id = ChatGPT.createId(ctx.msg);
+
+        if (args[0] === 'tokens') {
+            this.isProcessing = false;
+            const tokenCost: ResponseUsage | undefined = this.tokenCost.get(id);
+
+            if (!tokenCost) {
+                reactSuccess(message, 'Token count not available. Send a prompt and try again!');
+                return;
+            }
+
+            let reply: string = 'Last prompt token cost breakdown:\n\n';
+            reply += `* in: ${tokenCost.input_tokens}\n`;
+            reply += `* out: ${tokenCost.output_tokens}\n`;
+            reply += `* total: ${tokenCost.total_tokens}`;
+            reactSuccess(message, reply);
+
+            return;
+        }
+
         const previousResponseEntry: PreviousResponseId | undefined = await this.getPreviousResponseId(ctx.knex, id);
 
         let text = '';
@@ -87,6 +115,15 @@ export default class ChatGPT extends Command {
             text += `Direct message from ${authorId}:`;
         } else {
             text += `Public chat message from ${authorId} in #${(message.channel as TextChannel).name}:`;
+        }
+
+        const hasSysPerm: boolean = this.systemUserIds.indexOf(message.author.id) !== -1;
+        const isSysPrompt = args[0] === 'sys' && hasSysPerm;
+
+        if (isSysPrompt && args.length === 1) {
+            reactFail(message, 'System prompt not supplied.');
+            this.isProcessing = false;
+            return;
         }
 
         text += '\n\n' + message.cleanContent.substring(2 + this.trigger.length);
@@ -149,7 +186,8 @@ export default class ChatGPT extends Command {
         const content: (ResponseInputText | ResponseInputImage)[] = [
             {
                 type: 'input_text',
-                text,
+                // for system prompts, send as is
+                text: isSysPrompt ? args.slice(1).join(' ') : text,
             }
         ];
 
@@ -165,7 +203,7 @@ export default class ChatGPT extends Command {
             model: this.model,
             instructions,
             input: [{
-                role: 'user',
+                role: isSysPrompt ? 'system' : 'user',
                 content,
             }],
             max_output_tokens: 450, // limit to, approximately, the discord message limit
@@ -181,6 +219,8 @@ export default class ChatGPT extends Command {
 
         await ctx.msg.reply(response.output_text.substring(0, 1999));
 
+        this.tokenCost.set(id, response.usage);
+
         this.isProcessing = false;
 
         if (this.processingQueue.length) {
@@ -192,7 +232,17 @@ export default class ChatGPT extends Command {
         if (msg.channel.isTextBased()) {
             (msg.channel as TextChannel).send(buildHelp({
                 title: this.trigger,
-                description: 'Utilizes ChatGPT for interactive replies.\n\nUsage - `!g <some prompt>`',
+                description: 'Utilizes ChatGPT for interactive replies.\n\nGeneral usage - `!g <some prompt>`. Subcommands are also available:',
+                commands: [
+                    {
+                        command: `${this.trigger} tokens`,
+                        explanation: 'Send the token cost breakdown for the last prompt.',
+                    },
+                    {
+                        command: `${this.trigger} sys <prompt>`,
+                        explanation: 'Send privileged `system` role prompt. User\'s ID must be in `DISCORD_BOT_OPENAI_SYS_USERIDS`.',
+                    },
+                ]
             }));
         }
     }
