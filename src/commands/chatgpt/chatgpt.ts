@@ -3,7 +3,7 @@ import { ResponseCreateParamsNonStreaming, ResponseInputImage, ResponseInputText
 import fs from 'fs';
 import { Knex } from 'knex';
 import * as cheerio from 'cheerio';
-import { APIEmbedField, Embed, Message, TextChannel, User } from 'discord.js';
+import { APIEmbedField, ClientUser, Embed, Message, TextChannel, User } from 'discord.js';
 import Command, { ExecContext } from '../base';
 import { buildHelp } from '../../utils/help';
 import { PluginInitOptions } from '../../core/plugins';
@@ -72,7 +72,9 @@ export default class ChatGPT extends Command {
 
         let instructions = this.instructions;
         instructions += supplementaryInstructions;
-        instructions += `\n\nYour nickname is ${message.client.user.displayName}.`;
+
+        const botUser: ClientUser = message.client.user
+        instructions += `\n\nYour nickname is ${botUser.displayName}, ID: ${botUser.id}.`;
 
         const id = ChatGPT.createId(ctx.msg);
         const previousResponseEntry: PreviousResponseId | undefined = await this.getPreviousResponseId(ctx.knex, id);
@@ -98,19 +100,22 @@ export default class ChatGPT extends Command {
         if (referenceMessageId) {
             // possibly a reply
             const replyMessage = await message.channel.messages.fetch(referenceMessageId);
-            text += `\n\nMessage content end. The above message is a reply to this message from ${ChatGPT.generateAuthorString(replyMessage.author)}:`;
-            text += '\n\n' + replyMessage.cleanContent;
+            if (replyMessage.author.id != botUser.id) {
+                // include the reply only if not replying to the bot itself
+                text += `\n\nMessage content end. The above message is a reply to this message from ${ChatGPT.generateAuthorString(replyMessage.author)}:`;
+                text += '\n\n' + replyMessage.cleanContent;
 
-            // include attachment URLs which could be images from the message replied to
-            // and embed data.
-            replyMessage.attachments.forEach((attachment) => links.push(attachment.url));
-            const replyEmbedParseResults = this.parseEmbeds(replyMessage.embeds);
-            replyEmbedParseResults.forEach((result) => {
-                embedContent += (embedContent.length > 0 ? '\n\n' : '') + result.text;
-                result.urls.forEach((url) => {
-                    links.push(url);
+                // include attachment URLs which could be images from the message replied to
+                // and embed data.
+                replyMessage.attachments.forEach((attachment) => links.push(attachment.url));
+                const replyEmbedParseResults = this.parseEmbeds(replyMessage.embeds);
+                replyEmbedParseResults.forEach((result) => {
+                    embedContent += (embedContent.length > 0 ? '\n\n' : '') + result.text;
+                    result.urls.forEach((url) => {
+                        links.push(url);
+                    });
                 });
-            });
+            }
         }
 
         // include attachment URLs which could be images in the original image

@@ -5,8 +5,8 @@ will be in the form of `<displayName>, ID <id>` where `<displayName>` is the use
 unique Discord id. For public messages, `<channelName>` will be the public Discord channel where the message was posted. \
 Then the message content will follow.\n\n\
 \
-Optionally, if the message is a reply to another message, after the original message content there will be a text like \
-`Message content end. The above message is a reply to this message from <replyAuthorId>:` where `<replyAuthorId>` \
+Optionally, if the message is a reply to another user's message, after the original message content there will be a text \
+like `Message content end. The above message is a reply to this message from <replyAuthorId>:` where `<replyAuthorId>` \
 follows the same format as `<authorId>` and is the author of the message which the above message is replying to. \
 Then the content of the message being replied to will follow.\n\n\
 \
