@@ -163,6 +163,7 @@ export default class ChatGPT extends Command {
                 role: 'user',
                 content,
             }],
+            max_output_tokens: 450, // limit to, approximately, the discord message limit
         };
 
         if (previousResponseEntry) {
@@ -173,7 +174,7 @@ export default class ChatGPT extends Command {
 
         await this.createEntry(ctx.knex, id, response.id, Boolean(previousResponseEntry));
 
-        await ctx.msg.reply(response.output_text);
+        await ctx.msg.reply(response.output_text.substring(0, 1999));
 
         this.isProcessing = false;
 

@@ -92,6 +92,7 @@ module.exports = defineConfig([eslint.configs.recommended, tseslint.configs.reco
 
                 // OpenAI API fields
                 'image_url',
+                'max_output_tokens',
             ],
         }],
     },
