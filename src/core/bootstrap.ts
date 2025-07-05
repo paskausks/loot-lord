@@ -13,7 +13,7 @@ async function bootstrap(plugins: PluginConstructor[] = []): Promise<Discord.Cli
     const cnx = knex({
         client: 'better-sqlite3',
         connection: {
-            filename: './data.sqlite3',
+            filename: process.env.DISCORD_BOT_DB || 'data.sqlite3',
             timezone: 'UTC',
         },
         useNullAsDefault: true,

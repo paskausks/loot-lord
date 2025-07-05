@@ -35,6 +35,26 @@ Build the bot and start it:
 npm run build && npm start
 ```
 
+### Running as container
+
+Pull the image:
+
+```
+docker pull ghcr.io/paskausks/loot-lord:latest
+```
+
+Or build the image locally:
+
+```
+docker build -t loot-lord .
+```
+
+Then, assuming your `DISCORD_BOT_DB` is set to `/data/data.sqlite3`, (and, if you're using the ChatGPT plugin, `DISCORD_BOT_OPENAI_INSTRUCTIONS_PATH` is set to something like `/data/instructions.md`), run as:
+
+```
+docker run -i -t --rm --env-file /path/to/.env -v /path/to/db:/data loot-lord
+```
+
 ### ChatGPT functionality
 
 The bot has optional ChatGPT functionality via OpenAI's API. If you'd like to use it, set these relevant environment variables:

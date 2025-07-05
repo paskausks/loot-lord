@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+* Added: using a custom sqlite database path, settable via the `DISCORD_BOT_DB` environment variable. If unset, it'll fall back to `data.sqlite3` to preserve previous behavior.
+* Added: Dockerfile with instructions for containerized deployment.
+
 ## [v0.6.1]
 
 * Added: max token output limit for ChatGPT, so it doesn't go over the discord text channel message limit.
