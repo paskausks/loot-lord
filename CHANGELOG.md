@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [v0.6.1]
 
 * Added: max token output limit for ChatGPT, so it doesn't go over the discord text channel message limit.
 * Fixed: ChatGPT messages longer than the discord text channel message limit will be trimmed.
