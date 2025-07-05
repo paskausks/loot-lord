@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+* Added: max token output limit for ChatGPT, so it doesn't go over the discord text channel message limit.
+* Fixed: ChatGPT messages longer than the discord text channel message limit will be trimmed.
+* Fixed: for ChatGPT, if a reply is to the bot itself, don't include the message replied to in the prompt as its redundant and not recommended.
+* Added: ChatGPT plugin subcommand `!g sys` to pass privileged system-role prompts. Use `!g sys <prompt>` for debugging or administration. These are restricted to select user ids, definable as a comma-separated list in the `DISCORD_BOT_OPENAI_SYS_USERIDS` environment variable.
+* Added: ChatGPT plugin subcommand `!g reset` which cuts off the current conversation thread and starts a new one using the summary of the current thread as the start of the newly created conversation. Any user can reset the conversation in their DMs with the bot, but for resetting public server threads, the requesting user id has to be included in `DISCORD_BOT_OPENAI_SYS_USERIDS`.
+
 ## [v0.6.0]
 
 * Added: Counter system via the `!cnt` command.

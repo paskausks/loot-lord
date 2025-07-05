@@ -17,6 +17,7 @@ import URLCrawlResult, { URLType } from './url-crawl-result';
 import supplementaryInstructions from './supplementary-instructions';
 import EmbedParseResult from "./embed-parse-result";
 import { reactFail, reactSuccess } from "../../utils/discord";
+import summaryPrompt from "./summary-prompt";
 
 type PreviousResponseId = Pick<ChatGPTPreviousResponse, 'previous_response_id'>;
 
@@ -65,7 +66,7 @@ export default class ChatGPT extends Command {
         this.isProcessing = true;
 
         if (!this.openAIClient) {
-            this.isProcessing = false;
+            this.processNext();
             return;
         }
 
@@ -73,12 +74,13 @@ export default class ChatGPT extends Command {
 
         if (!args.length) {
             this.sendHelp(message);
-            this.isProcessing = false;
+            this.processNext();
             return;
         }
 
         await (message.channel as TextChannel).sendTyping();
 
+        const firstArg: string = args[0];
         let instructions = this.instructions;
         instructions += supplementaryInstructions;
 
@@ -87,7 +89,7 @@ export default class ChatGPT extends Command {
 
         const id = ChatGPT.createId(ctx.msg);
 
-        if (args[0] === 'tokens') {
+        if (firstArg === 'tokens') {
             this.isProcessing = false;
             const tokenCost: ResponseUsage | undefined = this.tokenCost.get(id);
 
@@ -105,7 +107,27 @@ export default class ChatGPT extends Command {
             return;
         }
 
+        const hasSysPerm: boolean = this.systemUserIds.indexOf(message.author.id) !== -1;
+        const isSysPrompt = firstArg === 'sys' && hasSysPerm;
+
         const previousResponseEntry: PreviousResponseId | undefined = await this.getPreviousResponseId(ctx.knex, id);
+
+        if (firstArg === 'reset') {
+            if (!ChatGPT.isDM(message) && !hasSysPerm) {
+                await reactFail(message, 'You don\'t have public chat reset permissions!');
+                this.processNext();
+                return;
+            }
+
+            if (!previousResponseEntry) {
+                await reactFail(message, 'No conversation to reset!');
+                this.processNext();
+                return;
+            }
+
+            await this.performReset(ctx.knex, id, message, previousResponseEntry.previous_response_id, instructions);
+            return;
+        }
 
         let text = '';
         const author = message.author;
@@ -117,12 +139,9 @@ export default class ChatGPT extends Command {
             text += `Public chat message from ${authorId} in #${(message.channel as TextChannel).name}:`;
         }
 
-        const hasSysPerm: boolean = this.systemUserIds.indexOf(message.author.id) !== -1;
-        const isSysPrompt = args[0] === 'sys' && hasSysPerm;
-
         if (isSysPrompt && args.length === 1) {
             reactFail(message, 'System prompt not supplied.');
-            this.isProcessing = false;
+            this.processNext();
             return;
         }
 
@@ -221,30 +240,37 @@ export default class ChatGPT extends Command {
 
         this.tokenCost.set(id, response.usage);
 
-        this.isProcessing = false;
-
-        if (this.processingQueue.length) {
-            this.exec(this.processingQueue.shift() as ExecContext);
-        }
+        this.processNext();
     }
 
     public async sendHelp(msg: Message): Promise<void> {
-        if (msg.channel.isTextBased()) {
-            (msg.channel as TextChannel).send(buildHelp({
-                title: this.trigger,
-                description: 'Utilizes ChatGPT for interactive replies.\n\nGeneral usage - `!g <some prompt>`. Subcommands are also available:',
-                commands: [
-                    {
-                        command: `${this.trigger} tokens`,
-                        explanation: 'Send the token cost breakdown for the last prompt.',
-                    },
-                    {
-                        command: `${this.trigger} sys <prompt>`,
-                        explanation: 'Send privileged `system` role prompt. User\'s ID must be in `DISCORD_BOT_OPENAI_SYS_USERIDS`.',
-                    },
-                ]
-            }));
-        }
+        let description: string = 'Utilizes ChatGPT for interactive replies.\n\n';
+        description += 'General usage - `!g <some prompt>`. Subcommands are also available. ';
+        description += 'It\'s recommended to `!g reset` when the converation has reached ~25k tokens ';
+        description += 'to reduce weird bot behaviors like generating multiple "assistant" outputs.';
+
+        let resetExplanation: string = 'Reset the converation based on generated summary. ';
+        resetExplanation += 'Useful to keep token cost in check for long-term conversations. ';
+        resetExplanation += 'If resetting a public, non-DM conversation, user\'s ID must be in `DISCORD_BOT_OPENAI_SYS_USERIDS`.';
+
+        (msg.channel as TextChannel).send(buildHelp({
+            title: this.trigger,
+            description,
+            commands: [
+                {
+                    command: `${this.trigger} tokens`,
+                    explanation: 'Send the token cost breakdown for the last prompt.',
+                },
+                {
+                    command: `${this.trigger} sys <prompt>`,
+                    explanation: 'Send privileged `system` role prompt. User\'s ID must be in `DISCORD_BOT_OPENAI_SYS_USERIDS`.',
+                },
+                {
+                    command: `${this.trigger} reset`,
+                    explanation: resetExplanation,
+                },
+            ],
+        }));
     }
 
     private async createEntry(
@@ -298,6 +324,70 @@ export default class ChatGPT extends Command {
                 urls: Array.from(text.matchAll(this.linkPattern), (match) => match[0].trim()),
             } as EmbedParseResult;
         }).flat();
+    }
+
+    // summarize existing conversation and use that summary to initiate a new one.
+    private async performReset(
+        knex: Knex,
+        id: string,
+        message: Message,
+        previousResponseId: string,
+        instructions: string
+    ): Promise<void> {
+        if (!this.openAIClient) {
+            return;
+        }
+
+        const channel: TextChannel = message.channel as TextChannel;
+
+        await channel.send('Summarizing.');
+
+        const options: ResponseCreateParamsNonStreaming = {
+            model: this.model,
+            input: [{
+                role: 'system',
+                content: summaryPrompt,
+            }],
+            previous_response_id: previousResponseId,
+        };
+
+        channel.sendTyping();
+        const response = await this.openAIClient.responses.create(options);
+
+        await channel.send('Done. Initiating new conversation.');
+
+        const content: string = 'This summary describes the conversation so far:\n\n' + response.output_text;
+        const newOptions: ResponseCreateParamsNonStreaming = {
+            model: this.model,
+            instructions,
+            input: [
+                {
+                    role: 'system',
+                    content,
+                },
+                {
+                    role: 'user',
+                    content: 'Say hi and summarize where we last left off.',
+                },
+            ],
+        };
+
+        channel.sendTyping();
+        const newResponse = await this.openAIClient.responses.create(newOptions);
+
+        await this.createEntry(knex, id, newResponse.id, true);
+        this.tokenCost.set(id, newResponse.usage);
+
+        await reactSuccess(message, newResponse.output_text);
+
+        this.processNext();
+    }
+
+    private async processNext(): Promise<void> {
+        this.isProcessing = false;
+        if (this.processingQueue.length) {
+            this.exec(this.processingQueue.shift() as ExecContext);
+        }
     }
 
     static shouldLoad(): boolean {
