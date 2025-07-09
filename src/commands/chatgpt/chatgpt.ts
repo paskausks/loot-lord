@@ -24,6 +24,8 @@ type PreviousResponseId = Pick<ChatGPTPreviousResponse, 'previous_response_id'>;
 export default class ChatGPT extends Command {
     public readonly trigger: string = 'g';
     public readonly table: string = 'chatgpt';
+    public readonly counter_table = 'counter'
+    public readonly counter_key = 'psych'
 
     private readonly model: string = process.env.DISCORD_BOT_OPENAI_MODEL || '';
     private readonly openAIClient?: OpenAI;
@@ -234,9 +236,22 @@ export default class ChatGPT extends Command {
 
         const response = await this.openAIClient.responses.create(options);
 
+        let response_text = response.output_text;
+
+        if (response.output.length > 1) {
+            // Prevent psychosis by limiting to single output text
+            if (response.output[0].type === 'message' && response.output[0].content[0].type === 'output_text') {
+                response_text = response.output[0].content[0].text;
+            }
+            const current_count = await this.get_psychosis_counter(ctx.knex);
+            const new_count = current_count + 1;
+            response_text += `\n:warning: Psychosis detected: ${new_count} :warning:`;
+            await this.set_psychosis_counter(ctx.knex, new_count);
+        }
+
         await this.createEntry(ctx.knex, id, response.id, Boolean(previousResponseEntry));
 
-        await ctx.msg.reply(response.output_text.substring(0, 1999));
+        await ctx.msg.reply(response_text.substring(0, 1999));
 
         this.tokenCost.set(id, response.usage);
 
@@ -247,7 +262,9 @@ export default class ChatGPT extends Command {
         let description: string = 'Utilizes ChatGPT for interactive replies.\n\n';
         description += 'General usage - `!g <some prompt>`. Subcommands are also available. ';
         description += 'It\'s recommended to `!g reset` when the converation has reached ~25k tokens ';
-        description += 'to reduce weird bot behaviors like generating multiple "assistant" outputs.';
+        description += 'to reduce weird bot behaviors like generating multiple "assistant" outputs.\n';
+        description += 'In case of multiple outputs, response will only contain the first output ';
+        description += 'plus a warning containing incremented counter for key `'+this.counter_key+'`.';
 
         let resetExplanation: string = 'Reset the converation based on generated summary. ';
         resetExplanation += 'Useful to keep token cost in check for long-term conversations. ';
@@ -381,6 +398,29 @@ export default class ChatGPT extends Command {
         await reactSuccess(message, newResponse.output_text);
 
         this.processNext();
+    }
+
+    private async get_psychosis_counter(knex: Knex): Promise<number> {
+        const [current_count] = await knex
+            .select('*')
+            .from(this.counter_table)
+            .where('key', this.counter_key)
+            .limit(1);
+        
+        return current_count?.count || 0;
+    }
+
+    private async set_psychosis_counter(knex: Knex, count: number) {
+        const response = await knex(this.counter_table).where({ key: this.counter_key }).update({
+            count,
+        });
+
+        if (!response) {
+            await knex(this.counter_table).insert({
+                key: this.counter_key,
+                count,
+            });
+        }
     }
 
     private async processNext(): Promise<void> {
