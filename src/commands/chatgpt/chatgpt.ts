@@ -342,7 +342,6 @@ export default class ChatGPT extends Command {
             .select('previous_response_id')
             .from<ChatGPTPreviousResponse>(this.table)
             .where('entity_id', entityId)
-            .limit(1)
             .delete()
         return;
     }
