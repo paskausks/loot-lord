@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+* Allow customizing the base URL for OpenAPI compatible chatbots via `DISCORD_BOT_OPENAI_BASE_URL`
+* Update the OpenAI npm package and do small stability adjustments for the LLM chatbot functionality.
+
 ## [v0.6.2]
 
 * Added: using a custom sqlite database path, settable via the `DISCORD_BOT_DB` environment variable. If unset, it'll fall back to `data.sqlite3` to preserve previous behavior.

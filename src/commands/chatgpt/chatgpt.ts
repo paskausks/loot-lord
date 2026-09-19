@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import OpenAI, { NotFoundError } from "openai";
 import {
     ResponseCreateParamsNonStreaming,
     ResponseInputImage,
@@ -39,12 +39,17 @@ export default class ChatGPT extends Command {
         super(options);
 
         const apiKey = process.env.DISCORD_BOT_OPENAI_API_KEY || '';
+        const baseURL = process.env.DISCORD_BOT_OPENAI_BASE_URL || '';
 
         if (!apiKey.length) {
             return;
         }
 
         this.openAIClient = new OpenAI({ apiKey });
+
+        if (baseURL.length) {
+            this.openAIClient.baseURL = baseURL;
+        }
 
         const instructionsFilePath = (process.env.DISCORD_BOT_OPENAI_INSTRUCTIONS_PATH || '');
 
@@ -230,9 +235,34 @@ export default class ChatGPT extends Command {
 
         if (previousResponseEntry) {
             options['previous_response_id'] = previousResponseEntry.previous_response_id;
+
+            // since some point, you can't have "instructions" and "previous_response_id" mixed
+            delete options.instructions
         }
 
-        const response = await this.openAIClient.responses.create(options);
+        let response;
+
+        try {
+            response = await this.openAIClient.responses.create(options);
+        } catch (e) {
+            if (!e) {
+                this.log("Some error happened when sending AI input", 'error')
+                return this.processNext();
+            }
+
+            if (e instanceof NotFoundError && e.error) {
+                const strErr = (e.error as string);
+                this.log("AI response error: " + strErr, 'error');
+
+                await ctx.msg.reply("Got a NotFound for the previous response, so, let's start from scratch!");
+                await this.deletePreviousResponseId(ctx.knex, id);
+
+                return this.processNext();
+            }
+
+            console.log(e);
+            return this.processNext();
+        }
 
         await this.createEntry(ctx.knex, id, response.id, Boolean(previousResponseEntry));
 
@@ -302,6 +332,19 @@ export default class ChatGPT extends Command {
             .where('entity_id', entityId)
             .limit(1) as ChatGPTPreviousResponse[];
         return result;
+    }
+
+    private async deletePreviousResponseId(
+        knex: Knex,
+        entityId: string,
+    ): Promise<void> {
+        await knex
+            .select('previous_response_id')
+            .from<ChatGPTPreviousResponse>(this.table)
+            .where('entity_id', entityId)
+            .limit(1)
+            .delete()
+        return;
     }
 
     private parseEmbeds(embeds: Embed[]): EmbedParseResult[] {

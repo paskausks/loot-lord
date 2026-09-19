@@ -55,12 +55,13 @@ Then, assuming your `DISCORD_BOT_DB` is set to `/data/data.sqlite3`, (and, if yo
 docker run -i -t --rm --env-file /path/to/.env -v /path/to/db:/data loot-lord
 ```
 
-### ChatGPT functionality
+### AI functionality
 
-The bot has optional ChatGPT functionality via OpenAI's API. If you'd like to use it, set these relevant environment variables:
+The bot has optional AI functionality via an OpenAPI compatible API. If you'd like to use it, set these relevant environment variables:
 
-* `DISCORD_BOT_OPENAI_API_KEY` - a valid OpenAI API key.
-* `DISCORD_BOT_OPENAI_MODEL` - the model to use. `gpt-4.1-mini` recommended as a good speed/quality balance.
+* `DISCORD_BOT_OPENAI_API_KEY` - a valid API key for the chosen provider
+* `DISCORD_BOT_OPENAI_BASE_URL` - a base URL if you're using a provider other than OpenAI.
+* `DISCORD_BOT_OPENAI_MODEL` - the model to use. If using OpenAI, `gpt-4.1-mini` recommended as a good speed/quality balance.
 * `DISCORD_BOT_OPENAI_INSTRUCTIONS_PATH` - a path to a text file which will be sent as the instruction block.
 * `DISCORD_BOT_OPENAI_SYS_USERIDS` - comma separated list of discord user IDs which can send "system" role prompts.
 

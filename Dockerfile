@@ -1,6 +1,6 @@
-FROM node:22-alpine
+FROM node:24-alpine
 
-LABEL "org.opencontainers.image.source"="https://github.com/paskausks/loot-lord"
+LABEL "org.opencontainers.image.source"="https://git.reno.lan/rp/loot-lord"
 
 WORKDIR /app
 
